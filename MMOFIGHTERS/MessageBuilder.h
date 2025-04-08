@@ -18,7 +18,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setPayLoadLen(sizeof(type) + sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp));
+		message->setPayLoadLen(sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp));
 		return;
 	}
 	inline void buildMsg_createOtherCharacter(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, _BYTE hp, Common::SerializeBuffer* message)
@@ -31,7 +31,7 @@ namespace Core
 			DebugBreak();
 		}
 
-		message->setPayLoadLen(sizeof(type) + sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp));
+		message->setPayLoadLen(sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp));
 		return;
 	}
 	inline void buildMsg_deleteCharacter(_BYTE type, int id, Common::SerializeBuffer* message)
@@ -43,7 +43,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setPayLoadLen(sizeof(type) + sizeof(id));
+		message->setPayLoadLen(sizeof(id));
 		return;
 	}
 	inline void buildMsg_move_start(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
@@ -55,7 +55,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setPayLoadLen(sizeof(type) + sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setPayLoadLen(sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
 		return;
 	}
 	inline void buildMsg_move_stop(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
@@ -68,7 +68,7 @@ namespace Core
 			DebugBreak();
 		}
 
-		message->setPayLoadLen(sizeof(type) + sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setPayLoadLen(sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
 		return;
 	}
 	inline void buildMsg_attack_lefthand(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
@@ -80,7 +80,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setPayLoadLen(sizeof(type) + sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setPayLoadLen(sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
 		return;
 	}
 	inline void buildMsg_attack_righthand(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
@@ -92,7 +92,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setPayLoadLen(sizeof(type) + sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setPayLoadLen(sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
 		return;
 	}
 	inline void buildMsg_attack_kick(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
@@ -104,7 +104,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setPayLoadLen(sizeof(type) + sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setPayLoadLen(sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
 		return;
 	}
 
@@ -118,7 +118,7 @@ namespace Core
 			DebugBreak();
 		}
 
-		message->setPayLoadLen(sizeof(type) + sizeof(attackId) + sizeof(targetId) + sizeof(targetHp));
+		message->setPayLoadLen(sizeof(attackId) + sizeof(targetId) + sizeof(targetHp));
 		return;
 	}
 }

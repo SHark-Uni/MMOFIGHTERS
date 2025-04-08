@@ -59,7 +59,7 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 		sBuffer
 	);
 	//메시지 조립 후 전달. 지금은 임시버퍼 쓰는 중
-	//SendUniCast(key, sBuffer, sizeof(MESSAGE_RES_CREATE_MY_CHARACTER) + sizeof(header_t));
+	SendUniCast(key, sBuffer, sBuffer->getUsedSize());
 
 	sBuffer->clear();
 	//2.내 캐릭터 생성 메시지 모두에게 보내주기
@@ -73,7 +73,7 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 		sBuffer
 	);
 	
-	//SendBroadCast(key, sBuffer, sizeof(header_t) + sizeof(MESSAGE_RES_CREATE_OTHER_CHARACTER));
+	SendBroadCast(key, sBuffer, sBuffer->getUsedSize());
 
 	//3. 기존에 있던 캐릭터들 생성해주는 메시지 보내기.
 	int						curId;
