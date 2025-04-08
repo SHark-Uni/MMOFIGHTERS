@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>{55863f16-b723-41c7-9795-59aa64cb439d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\DataStructure">
+      <UniqueIdentifier>{166057eb-f916-4771-84c6-687fcc340798}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameServer">
+      <UniqueIdentifier>{bfabfc26-e493-4ded-9def-ebd2044c2ac1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetWorkLib">
+      <UniqueIdentifier>{b34013e8-b900-4f76-8496-060200bae235}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetWorkLib\Session">
+      <UniqueIdentifier>{d8ecf381-deb1-4886-ac87-79f925ca532d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameServer\Player">
+      <UniqueIdentifier>{0c1927ac-c1c3-42a4-9382-fb47a44f370d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameServer\Message">
+      <UniqueIdentifier>{917f1dd6-be87-4f26-9a1a-e6627b7b48df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameServer\Common">
+      <UniqueIdentifier>{86413264-c1ba-4c8b-b048-3c40b79df825}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LOG">
+      <UniqueIdentifier>{c6c2c739-32f9-4a84-b6a4-9a4bb2afe5a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="CircularQueue.cpp">
+      <Filter>Common\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="NetLib.cpp">
+      <Filter>NetWorkLib</Filter>
+    </ClCompile>
+    <ClCompile Include="Session.cpp">
+      <Filter>NetWorkLib\Session</Filter>
+    </ClCompile>
+    <ClCompile Include="GameServer.cpp">
+      <Filter>GameServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>GameServer\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>LOG</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CircularQueue.h">
+      <Filter>Common\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectPool.h">
+      <Filter>Common\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorMessage.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SerializeBuffer.h">
+      <Filter>Common\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="NetLib.h">
+      <Filter>NetWorkLib</Filter>
+    </ClInclude>
+    <ClInclude Include="NetDefine.h">
+      <Filter>NetWorkLib</Filter>
+    </ClInclude>
+    <ClInclude Include="Session.h">
+      <Filter>NetWorkLib\Session</Filter>
+    </ClInclude>
+    <ClInclude Include="GameServer.h">
+      <Filter>GameServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>GameServer\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerDefine.h">
+      <Filter>GameServer\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageBuilder.h">
+      <Filter>GameServer\Message</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageFormat.h">
+      <Filter>GameServer\Message</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentDefine.h">
+      <Filter>GameServer\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>LOG</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
