@@ -4,8 +4,11 @@ namespace Common
 {
 	constexpr int RANGE_MOVE_TOP = 50;
 	constexpr int RANGE_MOVE_LEFT = 10;
-	constexpr int RANGE_MOVE_RIGHT = 630;
-	constexpr int RANGE_MOVE_BOTTOM = 470;
+
+	constexpr int MAX_MAP_RANGE = 6400;
+
+	constexpr int RANGE_MOVE_RIGHT = MAX_MAP_RANGE + 10;
+	constexpr int RANGE_MOVE_BOTTOM = MAX_MAP_RANGE + 50;
 
 	constexpr int MOVE_X_PER_FRAME = 3;
 	constexpr int MOVE_Y_PER_FRAME = 2;
@@ -23,4 +26,7 @@ namespace Common
 	constexpr int DAMAGE_LEFT_HAND = 3;
 	constexpr int DAMAGE_RIGHT_HAND = 5;
 	constexpr int DAMAGE_KICK = 10;
+
+
+
 }

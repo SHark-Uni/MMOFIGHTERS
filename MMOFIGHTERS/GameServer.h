@@ -2,6 +2,9 @@
 
 #include "NetLib.h"
 #include "Player.h"
+#include "Sector.h"
+#include <list>
+
 namespace Core
 {
 	constexpr int PLAYER_POOL_SIZE = 6000;

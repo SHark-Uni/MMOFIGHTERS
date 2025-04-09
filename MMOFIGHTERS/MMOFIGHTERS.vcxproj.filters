@@ -32,6 +32,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="GameServer\Sector">
+      <UniqueIdentifier>{84dfa12e-f051-4fdb-987d-f3b36aa39a8d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -101,6 +104,9 @@
     </ClInclude>
     <ClInclude Include="Logger.h">
       <Filter>LOG</Filter>
+    </ClInclude>
+    <ClInclude Include="Sector.h">
+      <Filter>GameServer\Sector</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

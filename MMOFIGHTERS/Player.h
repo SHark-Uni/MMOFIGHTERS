@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Sector.h" 
+
 namespace Core
 {
 	class Player
@@ -77,6 +79,8 @@ namespace Core
 		int _PlayerId;
 		int _SessionId;
 
+		SECTOR_POS _SectorPos;
+		
 		int _Action;
 		char _Direction;
 		bool _IsAlive;

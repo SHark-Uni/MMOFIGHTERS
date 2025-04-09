@@ -151,6 +151,7 @@
     <ClInclude Include="ObjectPool.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerDefine.h" />
+    <ClInclude Include="Sector.h" />
     <ClInclude Include="SerializeBuffer.h" />
     <ClInclude Include="Session.h" />
   </ItemGroup>

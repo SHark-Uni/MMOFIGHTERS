@@ -54,15 +54,4 @@ namespace Core
 		SPAWN_X = 300,
 		SPAWN_Y = 250,
 	};
-	enum class MAX_MAP_BOUNDARY
-	{
-		LEFT = 10,
-		TOP = 50,
-		BOTTOM = 470,
-		RIGHT = 630,
-		                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-		MAX_ERROR_BOUNDARY = 50,
-	};
-
-
 }

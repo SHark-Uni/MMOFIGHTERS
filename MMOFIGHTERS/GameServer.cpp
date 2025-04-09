@@ -6,6 +6,7 @@
 #include "Logger.h"
 #include "NetDefine.h"
 #include "ObjectPool.h"
+#include "ContentDefine.h"
 
 #include <cassert>
 
@@ -156,7 +157,7 @@ void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY ke
 	}
 
 	//범위 넘는 메시지 무시
-	if (recvX > static_cast<int>(MAX_MAP_BOUNDARY::RIGHT) || recvY > static_cast<int>(MAX_MAP_BOUNDARY::BOTTOM))
+	if (recvX > RANGE_MOVE_RIGHT || recvY > RANGE_MOVE_BOTTOM)
 	{
 		return;
 	}
@@ -226,8 +227,8 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 	short playerY = player->GetY();
 
 
-	if (abs(recvX - playerX) > static_cast<int>(MAX_MAP_BOUNDARY::MAX_ERROR_BOUNDARY) ||
-		abs(recvY - playerY) > static_cast<int>(MAX_MAP_BOUNDARY::MAX_ERROR_BOUNDARY))
+	if (abs(recvX - playerX) > COORD_ERROR_TOLERANCE ||
+		abs(recvY - playerY) > COORD_ERROR_TOLERANCE)
 	{
 #ifdef GAME_DEBUG
 		printf("CURRENT X : %hd | CURRENT Y : %hd \n", playerX, playerY);
@@ -240,7 +241,7 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 		return;
 	}
 
-	if (recvX > static_cast<int>(MAX_MAP_BOUNDARY::RIGHT) || recvY > static_cast<int>(MAX_MAP_BOUNDARY::BOTTOM))
+	if (recvX > RANGE_MOVE_RIGHT || recvY > RANGE_MOVE_BOTTOM)
 	{
 		return;
 	}
@@ -313,8 +314,8 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 		if (CheckAttackInRange(
 			myX,
 			myY,
-			static_cast<int>(PLAYER_ATTACK_RANGE::LEFT_HAND_X),
-			static_cast<int>(PLAYER_ATTACK_RANGE::LEFT_HAND_Y),
+			ATTACK_LEFT_HAND_RANGE_X,
+			ATTACK_LEFT_HAND_RANGE_Y,
 			targetX, targetY, attackDir))
 		{
 			sBuffer->clear();
@@ -372,8 +373,8 @@ void GameServer::ReqAttackRightHandProc(SerializeBuffer* message, const SESSION_
 		if (CheckAttackInRange(
 			myX,
 			myY,
-			static_cast<int>(PLAYER_ATTACK_RANGE::RIGHT_HAND_X),
-			static_cast<int>(PLAYER_ATTACK_RANGE::RIGHT_HAND_Y),
+			ATTACK_RIGHT_HAND_RANGE_X,
+			ATTACK_RIGHT_HAND_RANGE_Y,
 			targetX, targetY, attackDir))
 		{
 			sBuffer->clear();
@@ -429,8 +430,8 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 		if (CheckAttackInRange(
 			attacker->GetX(),
 			attacker->GetY(),
-			static_cast<int>(PLAYER_ATTACK_RANGE::KICK_X),
-			static_cast<int>(PLAYER_ATTACK_RANGE::KICK_Y),
+			ATTACK_KICK_X,
+			ATTACK_KICK_Y,
 			targetX, targetY, attackDir))
 		{
 			sBuffer->clear();
