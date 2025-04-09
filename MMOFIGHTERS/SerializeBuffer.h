@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string.h>
-#include "NetDefine.h"
+#include "MessageFormat.h"
 
 namespace Common
 {
@@ -103,16 +103,17 @@ namespace Common
 		
 		inline void reserveHeader()
 		{
-			_WritePos += sizeof(NetLib::NETWORK_HEADER);
+			_WritePos += sizeof(header_t);
 			return;
 		}
 
 		//PayLoadLen을 변경하는코드
-		inline void setPayLoadLen(char payload_len)
+		inline void setHeader(char code, char payload_len, char msgType)
 		{
 			char* curRead = _pBuffer + _ReadPos;
-			*curRead++ = NetLib::SIGNITURE;
-			*curRead = payload_len;
+			*curRead = code;
+			*++curRead = payload_len;
+			*++curRead = msgType;
 		}
 
 		inline SerializeBuffer& operator>> (unsigned char& value)

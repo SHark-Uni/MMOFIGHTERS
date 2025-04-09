@@ -111,10 +111,8 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 	_SbufferPool->deAllocate(sBuffer);
 }
 
-void GameServer::OnRecvProc(SerializeBuffer* message, SESSION_KEY key)
+void GameServer::OnRecvProc(SerializeBuffer* message, const char msgType, SESSION_KEY key)
 {
-	char msgType;
-	*message >> msgType;
 	//Header 제외하고 payload 넘겨주자
 	switch (msgType)
 	{

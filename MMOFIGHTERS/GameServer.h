@@ -18,7 +18,7 @@ namespace Core
 		void registPlayerPool(Common::ObjectPool<Player, PLAYER_POOL_SIZE, false>* pool);
 
 		void OnAcceptProc(const SESSION_KEY key) override;
-		void OnRecvProc(Common::SerializeBuffer* message, SESSION_KEY key) override;
+		void OnRecvProc(Common::SerializeBuffer* message, const char msgType, SESSION_KEY key) override;
 		void OnDestroyProc(const SESSION_KEY key) override;
 
 		/*=== ÄÁÅÙÃ÷ ====*/

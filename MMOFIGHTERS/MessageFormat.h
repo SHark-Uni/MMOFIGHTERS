@@ -2,6 +2,7 @@
 
 namespace Common
 {
+	constexpr char SIGNITURE = 0x89;
 	typedef char _BYTE;
 	enum class MESSAGE_DEFINE : int
 	{
@@ -52,6 +53,8 @@ namespace Common
 #pragma pack(push, 1)
 	typedef struct MESSAGE_HEADER
 	{
+		_BYTE _Code;
+		_BYTE _PayloadLen;
 		_BYTE _MessageType;
 	}header_t;
 #pragma pack(pop)

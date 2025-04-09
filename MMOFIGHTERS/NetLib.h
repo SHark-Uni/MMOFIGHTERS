@@ -39,7 +39,7 @@ namespace NetLib
 		void SendBroadCast(SESSION_KEY exceptSession, SerializeBuffer* message, const size_t messageLen);
 
 		virtual void OnAcceptProc(const SESSION_KEY key) = 0;
-		virtual void OnRecvProc(SerializeBuffer* message, SESSION_KEY sessionkey) = 0;
+		virtual void OnRecvProc(SerializeBuffer* message, const char msgType, SESSION_KEY sessionkey) = 0;
 		virtual void OnDestroyProc(const SESSION_KEY key) = 0;
 		/* 技记 昏力夸没. */
 		void Disconnect(SESSION_KEY sessionKey);

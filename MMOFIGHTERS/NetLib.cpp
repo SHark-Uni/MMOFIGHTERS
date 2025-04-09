@@ -205,9 +205,9 @@ void NetWorkLib::_RecvProc(Session* session)
 	// 한번 받은 메시지는 모두 처리한다.
 	while (true)
 	{
-		nheader_t header;
-		peekMessageLen = pRecvQ->Peek(reinterpret_cast<char*>(&header), sizeof(nheader_t));
-		if (peekMessageLen < sizeof(nheader_t))
+		header_t header;
+		peekMessageLen = pRecvQ->Peek(reinterpret_cast<char*>(&header), sizeof(header_t));
+		if (peekMessageLen < sizeof(header_t))
 		{
 			break;
 		}
@@ -220,17 +220,17 @@ void NetWorkLib::_RecvProc(Session* session)
 
 		payLoadLen = header._PayloadLen;
 		//메시지 완성되었는지 확인
-		if (pRecvQ->GetCurrentSize() < payLoadLen + sizeof(nheader_t))
+		if (pRecvQ->GetCurrentSize() < payLoadLen + sizeof(header_t))
 		{
 			break;
 		}
 
 		SerializeBuffer* sbuffer = _SbufferPool->allocate();
 		sbuffer->clear();
-		dequeueLen = pRecvQ->Dequeue(sbuffer->getBufferPtr(), payLoadLen + sizeof(nheader_t));
+		dequeueLen = pRecvQ->Dequeue(sbuffer->getBufferPtr(), payLoadLen + sizeof(header_t));
 		//여기서 dequeueLen이 요청한 크기보다 작은건 내가 잘못만든거임. 
 
-		if (dequeueLen != payLoadLen + sizeof(nheader_t))
+		if (dequeueLen != payLoadLen + sizeof(header_t))
 		{
 			Logger::Logging(static_cast<int>(eERROR_MESSAGE::RECV_DEQUEUE_ERROR), __LINE__, L"RECV DEQUEUE ERROR");
 			_SbufferPool->deAllocate(sbuffer);
@@ -238,7 +238,7 @@ void NetWorkLib::_RecvProc(Session* session)
 			break;
 		}
 		sbuffer->moveWritePos(dequeueLen);
-		sbuffer->getData(reinterpret_cast<char*>(&header), sizeof(nheader_t));
+		sbuffer->getData(reinterpret_cast<char*>(&header), sizeof(header_t));
 #ifdef GAME_DEBUG
 		int debugKey = session->GetSessionKey();
 		printf("============================================================\n");
@@ -247,7 +247,7 @@ void NetWorkLib::_RecvProc(Session* session)
 		printf("============================================================\n");
 #endif
 		//payload만 넘기기
-		OnRecvProc(sbuffer, session->GetSessionKey());
+		OnRecvProc(sbuffer, header._MessageType, session->GetSessionKey());
 		_SbufferPool->deAllocate(sbuffer);
 	}
 	return;
