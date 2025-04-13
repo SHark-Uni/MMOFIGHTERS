@@ -4,55 +4,57 @@
 
 namespace Core
 {
-	class Player;
-	/* For Sector */
-
-
-	/*
-	1개 Sector의 사이즈
-	64x64 (일단 이걸로 해보자)
-
-	128x128 (2번째 선택지)
-	*/
-
-	constexpr int SECTOR_WIDTH = 64;
-	constexpr int SECTOR_HEIGHT = 64;
-	constexpr int SECTOR_MAX_COLUMN = Common::MAX_MAP_RANGE / SECTOR_WIDTH;
-	constexpr int SECTOR_MAX_ROW = Common::MAX_MAP_RANGE / SECTOR_HEIGHT;
 	typedef struct SECTOR_POS
 	{
 		int x; // column 
 		int y; // row 
+
+		bool operator==(SECTOR_POS other)
+		{
+			if (x == other.x && y == other.y)
+			{
+				return true;
+			}
+			return false;
+		}
+
 	}sector_pos_t;
 	typedef struct SECTOR_SURROUND
 	{
 		int _Count;
 		struct SECTOR_POS _Surround[9];
-	};
 
+		int getCount()
+		{
+			return _Count;
+		}
+	};
+	
+	class Player;
+	class GameServer;
 	class Sector
 	{
-	private:
+	public:
 		//사실 Sector의 x,y는  Sector Width,Height를 나누면 바로 나옴. 거기에 등록해주면 됨.  
 		inline void getSurroundSector(int sector_x, int sector_y, SECTOR_SURROUND& sectorSurround)
 		{
-			int dx[3] = { -1,0,1 };
-			int dy[3] = { -1,0,1 };
+			int dx[Common::SECTOR_COLUMN_SIZE] = { -1,0,1 };
+			int dy[Common::SECTOR_ROW_SIZE] = { -1,0,1 };
 
 			int nx;
 			int ny;
 			int cnt = 0;
-			for (int i = 0; i < 3; i++)
+			for (int i = 0; i < Common::SECTOR_COLUMN_SIZE; i++)
 			{
 				nx = sector_x + dx[i];
-				if (nx < 0 || nx > SECTOR_MAX_COLUMN)
+				if (nx < 0 || nx >= Common::SECTOR_MAX_COLUMN)
 				{
 					continue;
 				}
-				for(int j = 0; j < 3; j++)
+				for (int j = 0; j < Common::SECTOR_ROW_SIZE; j++)
 				{
-					ny = sector_y + dy[i];
-					if (ny < 0 || ny > SECTOR_MAX_ROW)
+					ny = sector_y + dy[j];
+					if (ny < 0 || ny >= Common::SECTOR_MAX_ROW)
 					{
 						continue;
 					}
@@ -64,12 +66,10 @@ namespace Core
 			sectorSurround._Count = cnt;
 			return;
 		}
-
 		inline void enrollPlayer(int sector_x, int sector_y, Player* pTarget)
 		{
 			_Sector[sector_y][sector_x].push_back(pTarget);
 		}
-
 		inline void dropOutPlayer(int sector_x, int sector_y, Player* pTarget)
 		{
 			_Sector[sector_y][sector_x].remove(pTarget);
@@ -84,15 +84,64 @@ namespace Core
 			getSurroundSector(prev_sector.x, prev_sector.y, prevAround);
 			getSurroundSector(new_sector.x, new_sector.y, curAround);
 
-			//교집합 부분 뽑아내고, 
+			//prev기준으로 겹치지 않는 부분 -> delete sector 
+			bool flag = false;
+			int cnt = 0;
+			for (int i = 0; i < prevAround._Count; i++)
+			{
+				for (int j = 0; j < curAround._Count; j++)
+				{
+					//중복되는 부분은 등록 x
+					if (prevAround._Surround[i].x == curAround._Surround[j].x &&
+						prevAround._Surround[i].y == curAround._Surround[j].y)
+					{
+						flag ^= 1;
+						break;
+					}
+				}
 
+				if (flag)
+				{
+					flag ^= 1;
+					continue;
+				}
+				//flag가 여전히 false인 경우
+				delete_secotr._Surround[cnt].x = prevAround._Surround[i].x;
+				delete_secotr._Surround[cnt].y = prevAround._Surround[i].y;
+				++cnt;
+			}
+			delete_secotr._Count = cnt;
+
+			//cur기준으로 겹치지 않는 부분 ->addsector
+			flag = false;
+			cnt = 0;
+			for (int i = 0; i < curAround._Count; i++)
+			{
+				for (int j = 0; j < prevAround._Count; j++)
+				{
+					//같다면, flag 세우고
+					if (curAround._Surround[i].x == prevAround._Surround[j].x &&
+						curAround._Surround[i].y == prevAround._Surround[j].y)
+					{
+						flag ^= 1;
+						break;
+					}
+				}
+				if (flag)
+				{
+					flag ^= 1;
+					continue;
+				}
+				add_sector._Surround[cnt].x = curAround._Surround[i].x;
+				add_sector._Surround[cnt].y = curAround._Surround[i].y;
+				++cnt;
+			}
+			add_sector._Count = cnt;
 		}
 	private:
-		std::list<Player*> _Sector[SECTOR_MAX_ROW][SECTOR_MAX_COLUMN];
+		friend class GameServer;
+		std::list<Player*> _Sector[Common::SECTOR_MAX_ROW][Common::SECTOR_MAX_COLUMN];
 	};
-
-	
-
 }
 
 

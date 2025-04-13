@@ -24,6 +24,7 @@ namespace Core
 		void OnRecvProc(Common::SerializeBuffer* message, const char msgType, SESSION_KEY key) override;
 		void OnDestroyProc(const SESSION_KEY key) override;
 
+		void SendToSector(Common::SerializeBuffer* message, const Player* player);
 		/*=== ÄÁÅÙÃ÷ ====*/
 		void ReqMoveStartProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqMoveStopProc(Common::SerializeBuffer* message, const SESSION_KEY key);
@@ -41,5 +42,6 @@ namespace Core
 		std::unordered_map<PLAYER_KEY, Player*> _Players;
 
 		Common::ObjectPool<Player, PLAYER_POOL_SIZE, false>* _PlayerPool;
+		Sector* _pSector;
 	};
 }

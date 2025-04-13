@@ -75,12 +75,43 @@ namespace Core
 		{
 			return _Y;
 		}
+
+		inline void UpdateSector(int curX, int curY, int prevX, int prevY)
+		{
+			if (curX == prevX && curY == prevY)
+			{
+				return;
+			}
+			_PrevSectorPos = _CurSectorPos;
+			_CurSectorPos.x = curX;
+			_CurSectorPos.y = curY;
+		}
+
+		inline void SetSector(SECTOR_POS sector)
+		{
+			_CurSectorPos = sector;
+		}
+		inline SECTOR_POS GetSector() const
+		{
+			return _CurSectorPos;
+		}
+
+		inline void SetPrevSector(SECTOR_POS sector)
+		{
+			_PrevSectorPos = sector;
+		}
+		inline SECTOR_POS GetPrevSector() const
+		{
+			return _PrevSectorPos;
+		}
+
 	private:
 		int _PlayerId;
 		int _SessionId;
 
-		SECTOR_POS _SectorPos;
-		
+		SECTOR_POS _CurSectorPos;
+		SECTOR_POS _PrevSectorPos;
+
 		int _Action;
 		char _Direction;
 		bool _IsAlive;

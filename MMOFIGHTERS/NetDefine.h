@@ -7,6 +7,4 @@ namespace NetLib
 	constexpr size_t SESSION_POOL_SIZE = 6000;
 	constexpr size_t RINGBUFFER_POOL_SIZE = 6000;
 	constexpr size_t RINGBUFFER_QUEUE_SIZE = 8192;
-
-	
 }

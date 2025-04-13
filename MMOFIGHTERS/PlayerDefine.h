@@ -23,23 +23,6 @@ namespace Core
 		X_SPEED = 3,
 		Y_SPEED = 2,
 	};
-	enum class PLAYER_DAMAGE
-	{
-		LEFT_HAND = 5,
-		RIGHT_HAND = 8,
-		KICK = 10,
-	};
-	enum class PLAYER_ATTACK_RANGE
-	{
-		LEFT_HAND_X = 80,
-		LEFT_HAND_Y = 10,
-
-		RIGHT_HAND_X = 90,
-		RIGHT_HAND_Y = 10,
-
-		KICK_X = 100,
-		KICK_Y = 20,
-	};
 
 	enum class PLAYER_DEFAULT
 	{
@@ -50,8 +33,5 @@ namespace Core
 		MOVE_SPEED_Y = 2,
 
 		PLAYER_HP = 100,
-
-		SPAWN_X = 300,
-		SPAWN_Y = 250,
 	};
 }
