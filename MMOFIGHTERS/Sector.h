@@ -84,15 +84,61 @@ namespace Core
 			getSurroundSector(prev_sector.x, prev_sector.y, prevAround);
 			getSurroundSector(new_sector.x, new_sector.y, curAround);
 
-			//교집합 부분 뽑아내고, 
+			//prev기준으로 겹치지 않는 부분 -> delete sector 
+			bool flag = false;
+			int cnt = 0;
+			for (int i = 0; i < prevAround._Count; i++)
+			{
+				for (int j = 0; j < curAround._Count; j++)
+				{
+					//같다면, flag 세우고
+					if (prevAround._Surround[i].x == curAround._Surround[j].x &&
+						prevAround._Surround[i].y == curAround._Surround[j].y)
+					{
+						flag ^= 1;
+						continue;
+					}
+				}
 
+				if (!flag)
+				{
+					delete_secotr._Surround[cnt].x = prevAround._Surround[i].x;
+					delete_secotr._Surround[cnt].y = prevAround._Surround[i].y;
+					++cnt;
+					flag ^= 1;
+				}
+			}
+			delete_secotr._Count = cnt;
+
+			//cur기준으로 겹치지 않는 부분 ->addsector
+			flag = false;
+			cnt = 0;
+			for (int i = 0; i < curAround._Count; i++)
+			{
+				for (int j = 0; j < prevAround._Count; j++)
+				{
+					//같다면, flag 세우고
+					if (curAround._Surround[i].x == prevAround._Surround[j].x &&
+						curAround._Surround[i].y == prevAround._Surround[j].y)
+					{
+						flag ^= 1;
+						continue;
+					}
+				}
+
+				if (!flag)
+				{
+					add_sector._Surround[cnt].x = curAround._Surround[i].x;
+					add_sector._Surround[cnt].y = curAround._Surround[i].y;
+					++cnt;
+					flag ^= 1;
+				}
+			}
+			add_sector._Count = cnt;
 		}
 	private:
 		std::list<Player*> _Sector[SECTOR_MAX_ROW][SECTOR_MAX_COLUMN];
 	};
-
-	
-
 }
 
 
