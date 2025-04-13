@@ -19,6 +19,9 @@ void Player::Init(const int playerId, const int sessionId)
 	_X = generateSpawnX();
 	_Y = generateSpawnY();
 
+	_PrevSectorPos = { _X / SECTOR_WIDTH , _Y / SECTOR_HEIGHT };
+	_CurSectorPos = { _X / SECTOR_WIDTH , _Y / SECTOR_HEIGHT };
+
 	_Hp = static_cast<int>(PLAYER_DEFAULT::PLAYER_HP);
 }
 
@@ -36,14 +39,14 @@ void Player::Move(const short x, const short y)
 	// 하나라도 막혀있으면 못가는 로직으로 변경해야함. 
 	// 이건 MAX값만 체크한 로직임. 이럴경우 대각선으로 가면 뚫림
 
-	int nextX = _X + x;
-	int nextY = _Y + y;
-
 	//만약에, 다음으로 움직일 곳이 벽이라면 멈춰야함. (움직임 x)
-	if (CheckWallCollision(nextX, nextY))
+	if (CheckWallCollision(_X + x, _Y + y))
 	{
 		return;
 	}
+	
+	//섹터 변화가 있다면 Update 
+	UpdateSector(_CurSectorPos.x, _CurSectorPos.y, (_X + x) / SECTOR_WIDTH, (_Y + y) / SECTOR_HEIGHT);
 
 	_X += x;
 	_Y += y;
@@ -67,7 +70,7 @@ bool Core::Player::CheckWallCollision(const int x, const int y)
 	if (x < static_cast<short>(RANGE_MOVE_LEFT)
 		|| x > static_cast<short>(RANGE_MOVE_RIGHT)
 		|| y < static_cast<short>(RANGE_MOVE_TOP)
-		|| y > static_cast<short>(RANGE_MOVE_BOTTOM)
+		|| y > static_cast<short>(RANGE_MOVE_BOTTOM))
 	{
 		return true;
 	}

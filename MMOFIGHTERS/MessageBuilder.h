@@ -125,4 +125,16 @@ namespace Core
 		message->setHeader(SIGNITURE, type, sizeof(attackId) + sizeof(targetId) + sizeof(targetHp));
 		return;
 	}
+
+	inline void buildMsg_Sync(_BYTE type, int playerId, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
+	{
+		message->reserveHeader();
+		*message << playerId << x << y;
+		if (message->checkFailBit())
+		{
+			DebugBreak();
+		}
+		message->setHeader(SIGNITURE, type, sizeof(playerId) + sizeof(x) + sizeof(y));
+		return;
+	}
 }
