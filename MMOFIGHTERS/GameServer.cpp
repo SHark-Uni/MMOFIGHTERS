@@ -327,7 +327,7 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 	{
 		return;
 	}
-
+	 
 	int playerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(playerKey)->second;
 	short myX = attacker->GetX();
