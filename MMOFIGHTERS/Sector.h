@@ -70,11 +70,19 @@ namespace Core
 		{
 			_Sector[sector_y][sector_x].push_back(pTarget);
 		}
+		inline void enrollPlayer(SECTOR_POS pos, Player* pTarget)
+		{
+			_Sector[pos.y][pos.x].push_back(pTarget);
+		}
+
 		inline void dropOutPlayer(int sector_x, int sector_y, Player* pTarget)
 		{
 			_Sector[sector_y][sector_x].remove(pTarget);
 		}
-
+		inline void dropOutPlayer(SECTOR_POS pos, Player* pTarget)
+		{
+			_Sector[pos.y][pos.x].remove(pTarget);
+		}
 		/*일단, for문으로 prev Sector와 new Sector 중 deleteSector, add_sector 구한 다음, 느리다면 케이스를 나눠서 최적화 시켜보자.*/
 		inline void getUpdateSurroundSector(SECTOR_POS prev_sector, SECTOR_POS new_sector, SECTOR_SURROUND& delete_secotr, SECTOR_SURROUND& add_sector)
 		{
