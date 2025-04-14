@@ -23,11 +23,6 @@ namespace Core
 	{
 		int _Count;
 		struct SECTOR_POS _Surround[9];
-
-		int getCount()
-		{
-			return _Count;
-		}
 	};
 	
 	class Player;
@@ -47,14 +42,14 @@ namespace Core
 			for (int i = 0; i < Common::SECTOR_COLUMN_SIZE; i++)
 			{
 				nx = sector_x + dx[i];
-				if (nx < 0 || nx >= Common::SECTOR_MAX_COLUMN)
+				if (nx < 0 || nx > Common::SECTOR_MAX_COLUMN)
 				{
 					continue;
 				}
 				for (int j = 0; j < Common::SECTOR_ROW_SIZE; j++)
 				{
 					ny = sector_y + dy[j];
-					if (ny < 0 || ny >= Common::SECTOR_MAX_ROW)
+					if (ny < 0 || ny > Common::SECTOR_MAX_ROW)
 					{
 						continue;
 					}
@@ -74,6 +69,54 @@ namespace Core
 		{
 			_Sector[pos.y][pos.x].push_back(pTarget);
 		}
+		
+		/*내 현재 섹터기준 오른쪽 Sector를 탐색*/
+		inline void getRightSideSector(const int sector_x, const int sector_y, SECTOR_SURROUND& rightSide)
+		{
+			int cnt = 0;
+			for (int offsetX = 0; offsetX < 2; offsetX++)
+			{
+				if ((sector_x + offsetX) >= SECTOR_MAX_COLUMN || (sector_x + offsetX) < 0)
+				{
+					continue;
+				}
+				for (int offsetY = -1; offsetY <= 1; offsetY++)
+				{
+					if ((sector_y + offsetY) < 0 || (sector_y + offsetY) >= SECTOR_MAX_ROW)
+					{
+						continue;
+					}
+					rightSide._Surround[cnt].x = sector_x + offsetX;
+					rightSide._Surround[cnt].y = sector_y + offsetY;
+					++cnt;
+				}
+			}
+			rightSide._Count = cnt;
+		}
+		inline void getLeftSideSector(const int sector_x, const int sector_y, SECTOR_SURROUND& leftSide)
+		{
+			int cnt = 0;
+			for (int offsetX = -1; offsetX < 1; offsetX++)
+			{
+				if ((sector_x + offsetX) >= SECTOR_MAX_COLUMN || (sector_x + offsetX) < 0)
+				{
+					continue;
+				}
+				for (int offsetY = -1; offsetY <= 1; offsetY++)
+				{
+					if ((sector_y + offsetY) < 0 || (sector_y + offsetY) >= SECTOR_MAX_ROW)
+					{
+						continue;
+					}
+					leftSide._Surround[cnt].x = sector_x + offsetX;
+					leftSide._Surround[cnt].y = sector_y + offsetY;
+					++cnt;
+				}
+			}
+			leftSide._Count = cnt;
+		}
+		
+
 
 		inline void dropOutPlayer(int sector_x, int sector_y, Player* pTarget)
 		{

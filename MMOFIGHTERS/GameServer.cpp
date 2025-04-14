@@ -170,7 +170,7 @@ void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY ke
 	//MOVE START 시에도, 싱크를 보내줘야할까? 둘중에 한곳에서만 해주면 되지 않을까? 
 
 	//범위 넘는 메시지 무시
-	if (recvX > RANGE_MOVE_RIGHT || recvY > RANGE_MOVE_BOTTOM)
+	if (recvX >= RANGE_MOVE_RIGHT || recvY >= RANGE_MOVE_BOTTOM)
 	{
 		return;
 	}
@@ -230,6 +230,16 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 		DebugBreak();
 	}
 
+	if (recvX >= RANGE_MOVE_RIGHT || recvY >= RANGE_MOVE_BOTTOM)
+	{
+		return;
+	}
+
+	if (CheckDirection(direction) == false)
+	{
+		return;
+	}
+
 	//내 캐릭터 정보 찾기
 	int playerKey = _keys.find(key)->second;
 	Player* player = _Players.find(playerKey)->second;
@@ -255,19 +265,6 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 		recvY = playerY;
 		//OnDestroyProc(key);
 	}
-
-	if (recvX > RANGE_MOVE_RIGHT || recvY > RANGE_MOVE_BOTTOM)
-	{
-		_SbufferPool->deAllocate(sBuffer);
-		return;
-	}
-
-	if (CheckDirection(direction) == false)
-	{
-		_SbufferPool->deAllocate(sBuffer);
-		return;
-	}
-
 	//오차범위 내라면.. Client의 좌표를 믿어줌.
 	player->SetX(recvX);
 	player->SetY(recvY);
@@ -341,7 +338,16 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 	SendToSector(sBuffer, attacker);
 
 	//공격범위 판정(섹터기반 탐색)
+	// 공격범위가 X,Y성분 모두 존재하기 때문에..내 주위 9섹터 모두 봐야함.
+	// 예를들어, 중앙섹터의 우측상단에서 1시방향으로 공격했을 때, 공격범위 내라면.. 1시에 있는 애는 맞아야함. 
 
+    // 오른쪽 공격이면, 오른쪽 위아래 섹터 탐색
+	// 가장 가까이 있는 Player를 공격하도록 하자. 
+
+
+
+	// 왼쪽 공격이면.. 왼쪽 위아래 섹터 탐색
+	
 
 	for (auto& player : _Players)
 	{

@@ -17,8 +17,8 @@ namespace Common
 
 	constexpr int SECTOR_WIDTH = 64;
 	constexpr int SECTOR_HEIGHT = 64;
-	constexpr int SECTOR_MAX_COLUMN = MAX_MAP_RANGE / SECTOR_WIDTH + 1;
-	constexpr int SECTOR_MAX_ROW = MAX_MAP_RANGE / SECTOR_HEIGHT + 1;
+	constexpr int SECTOR_MAX_COLUMN = MAX_MAP_RANGE / SECTOR_WIDTH;
+	constexpr int SECTOR_MAX_ROW = MAX_MAP_RANGE / SECTOR_HEIGHT;
 
 	//3x3 ºΩ≈Õ
 	constexpr int SECTOR_COLUMN_SIZE = 3;
