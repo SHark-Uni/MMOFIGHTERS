@@ -38,5 +38,6 @@ namespace Common
 	constexpr int DAMAGE_RIGHT_HAND = 8;
 	constexpr int DAMAGE_KICK = 10;
 
-
+	constexpr int CHARACTER_DIRECTION_LEFT = 0;
+	constexpr int CHARACTER_DIRECTION_RIGHT = 4;
 }

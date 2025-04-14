@@ -189,15 +189,15 @@ void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY ke
 	{
 	case static_cast<int>(MOVE_DIRECTION::LEFT):
 	case static_cast<int>(MOVE_DIRECTION::LEFT_TOP):
-		player->SetDirection(static_cast<char>(CHARCTER_DIRECTION_2D::LEFT));
+		player->SetDirection(CHARACTER_DIRECTION_LEFT);
 		break;
 	case static_cast<int>(MOVE_DIRECTION::RIGHT_TOP):
 	case static_cast<int>(MOVE_DIRECTION::RIGHT):
 	case static_cast<int>(MOVE_DIRECTION::RIGHT_BOTTOM):
-		player->SetDirection(static_cast<char>(CHARCTER_DIRECTION_2D::RIGHT));
+		player->SetDirection(CHARACTER_DIRECTION_RIGHT);
 		break;
 	case static_cast<int>(MOVE_DIRECTION::LEFT_BOTTOM):
-		player->SetDirection(static_cast<char>(CHARCTER_DIRECTION_2D::LEFT));
+		player->SetDirection(CHARACTER_DIRECTION_LEFT);
 		break;
 	default:
 		break;
@@ -312,7 +312,6 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 	char attackDir;
 	unsigned short recvX;
 	unsigned short recvY;
-
 	*message >> attackDir >> recvX >> recvY;
 	if (message->checkFailBit() == true)
 	{
@@ -327,50 +326,40 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 	 
 	int playerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(playerKey)->second;
-	short myX = attacker->GetX();
-	short myY = attacker->GetY();
+	Player* target = nullptr;
 
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-	sBuffer->clear();
+	char attackerDirection = attacker->GetDirection();
 
-	//어택 Message Send
-	buildMsg_attack_lefthand(static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_LEFT_HAND), playerKey, attackDir, myX, myY, sBuffer);
+	sBuffer->clear();
+	buildMsg_attack_lefthand(
+		static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_LEFT_HAND), 
+		playerKey, 
+		attackDir, 
+		attacker->GetX(),
+		attacker->GetY(),
+		sBuffer
+	);
 	SendToSector(sBuffer, attacker);
 
-	//공격범위 판정(섹터기반 탐색)
-	// 공격범위가 X,Y성분 모두 존재하기 때문에..내 주위 9섹터 모두 봐야함.
-	// 예를들어, 중앙섹터의 우측상단에서 1시방향으로 공격했을 때, 공격범위 내라면.. 1시에 있는 애는 맞아야함. 
-
-    // 오른쪽 공격이면, 오른쪽 위아래 섹터 탐색
-	// 가장 가까이 있는 Player를 공격하도록 하자. 
-
-
-
-	// 왼쪽 공격이면.. 왼쪽 위아래 섹터 탐색
-	
-
-	for (auto& player : _Players)
+	SECTOR_SURROUND targetSide;
+	SECTOR_POS curSector = attacker->GetSector();
+	if (attackerDirection == CHARACTER_DIRECTION_LEFT)
 	{
-		Player* target = player.second;
-		//내가 내 자신을 때리면 안됨.
-		if (target->GetPlayerId() == playerKey)
-		{
-			continue;
-		}
-		int targetX = target->GetX();
-		int targetY = target->GetY();
-		if (CheckAttackInRange(
-			myX,
-			myY,
-			ATTACK_LEFT_HAND_RANGE_X,
-			ATTACK_LEFT_HAND_RANGE_Y,
-			targetX, targetY, attackDir))
-		{
-			sBuffer->clear();
-			target->Attacked(DAMAGE_LEFT_HAND);
-			buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), playerKey, target->GetPlayerId(), target->GetHp(), sBuffer);
-			SendBroadCast(sBuffer, sBuffer->getUsedSize());
-		}
+		_pSector->getLeftSideSector(curSector.x, curSector.y, targetSide);
+	}
+	else
+	{
+		_pSector->getRightSideSector(curSector.x, curSector.y, targetSide);
+	}
+
+	CheckAttackSucess(attacker, target, ATTACK_LEFT_HAND_RANGE_X, ATTACK_LEFT_HAND_RANGE_Y, targetSide);
+	if (target != nullptr)
+	{
+		sBuffer->clear();
+		target->Attacked(DAMAGE_LEFT_HAND);
+		buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), attacker->GetPlayerId(), target->GetPlayerId(), target->GetHp(), sBuffer);
+		SendToSector(sBuffer, target);
 	}
 	_SbufferPool->deAllocate(sBuffer);
 }
@@ -395,43 +384,40 @@ void GameServer::ReqAttackRightHandProc(SerializeBuffer* message, const SESSION_
 	//내 캐릭터 정보 찾기
 	int playerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(playerKey)->second;
-
-	short myX = attacker->GetX();
-	short myY = attacker->GetY();
-
-
+	Player* target = nullptr;
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+
+	char attackerDirection = attacker->GetDirection();
+
 	sBuffer->clear();
-
-	//어택 Message Send
-	buildMsg_attack_righthand(static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_RIGHT_HAND), playerKey, attackDir, myX, myY, sBuffer);
-	SendBroadCast(key, sBuffer, sBuffer->getUsedSize());
-
-	//공격범위 판정
-	for (auto& player : _Players)
+	buildMsg_attack_lefthand(
+		static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_LEFT_HAND),
+		playerKey,
+		attackerDirection,
+		attacker->GetX(),
+		attacker->GetY(),
+		sBuffer
+	);
+	SendToSector(sBuffer, attacker);
+	//어택 판정
+	SECTOR_SURROUND targetSide;
+	SECTOR_POS curSector = attacker->GetSector();
+	if (attackerDirection == CHARACTER_DIRECTION_LEFT)
 	{
-		Player* target = player.second;
-		//내가 내 자신을 때리면 안됨.
-		if (target->GetPlayerId() == playerKey)
-		{
-			continue;
-		}
-		int targetX = target->GetX();
-		int targetY = target->GetY();
-		if (CheckAttackInRange(
-			myX,
-			myY,
-			ATTACK_RIGHT_HAND_RANGE_X,
-			ATTACK_RIGHT_HAND_RANGE_Y,
-			targetX, targetY, attackDir))
-		{
-			sBuffer->clear();
-
-			target->Attacked(DAMAGE_RIGHT_HAND);
-			buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), playerKey, target->GetPlayerId(), target->GetHp(), sBuffer);
-
-			SendBroadCast(sBuffer, sBuffer->getUsedSize());
-		}
+		_pSector->getLeftSideSector(curSector.x, curSector.y, targetSide);
+	}
+	// 오른쪽 공격이면, 오른쪽 위아래 섹터 탐색
+	else
+	{
+		_pSector->getRightSideSector(curSector.x, curSector.y, targetSide);
+	}
+	CheckAttackSucess(attacker, target, ATTACK_RIGHT_HAND_RANGE_X, ATTACK_RIGHT_HAND_RANGE_Y, targetSide);
+	if (target != nullptr)
+	{
+		sBuffer->clear();
+		target->Attacked(DAMAGE_LEFT_HAND);
+		buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), attacker->GetPlayerId(), target->GetPlayerId(), target->GetHp(), sBuffer);
+		SendToSector(sBuffer, target);
 	}
 	_SbufferPool->deAllocate(sBuffer);
 }
@@ -454,41 +440,37 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 		return;
 	}
 
-	//내 캐릭터 정보 찾기
+	//내 캐릭터 정보
 	int playerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(playerKey)->second;
-
+	Player* target = nullptr;
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	char attackerDirection = attacker->GetDirection();
+
 	sBuffer->clear();
-
-	//어택 Message Send
 	buildMsg_attack_kick(static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_KICK), playerKey, attackDir, attacker->GetX(), attacker->GetY(), sBuffer);
-	SendBroadCast(key, sBuffer, sBuffer->getUsedSize());
+	SendToSector(sBuffer, attacker);
 
-	//공격범위 판정
-	for (auto& player : _Players)
+	SECTOR_SURROUND targetSide;
+	SECTOR_POS curSector = attacker->GetSector();
+	if (attackerDirection == CHARACTER_DIRECTION_LEFT)
 	{
-		Player* target = player.second;
-		if (target->GetPlayerId() == playerKey)
-		{
-			continue;
-		}
-		int targetX = target->GetX();
-		int targetY = target->GetY();
-		if (CheckAttackInRange(
-			attacker->GetX(),
-			attacker->GetY(),
-			ATTACK_KICK_X,
-			ATTACK_KICK_Y,
-			targetX, targetY, attackDir))
-		{
-			sBuffer->clear();
-			target->Attacked(DAMAGE_KICK);
-			buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), playerKey, target->GetPlayerId(), target->GetHp(), sBuffer);
-			SendBroadCast(sBuffer, sBuffer->getUsedSize());
-
-		}
+		_pSector->getLeftSideSector(curSector.x, curSector.y, targetSide);
 	}
+	// 오른쪽 공격이면, 오른쪽 위아래 섹터 탐색
+	else
+	{
+		_pSector->getRightSideSector(curSector.x, curSector.y, targetSide);
+	}
+	CheckAttackSucess(attacker, target, ATTACK_KICK_X, ATTACK_KICK_Y, targetSide);
+	if (target != nullptr)
+	{
+		sBuffer->clear();
+		target->Attacked(DAMAGE_LEFT_HAND);
+		buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), attacker->GetPlayerId(), target->GetPlayerId(), target->GetHp(), sBuffer);
+		SendToSector(sBuffer, target);
+	}
+
 	_SbufferPool->deAllocate(sBuffer);
 }
 
@@ -556,9 +538,50 @@ void GameServer::SendCreateMessage_AddSector(const Player* player, Common::Seria
 	}
 }
 
+void GameServer::CheckAttackSucess(const Player* attacker, Player*& target, const int AttackRangeX, const int AttackRangeY, const SECTOR_SURROUND& attackRangeSector)
+{
+	int nx;
+	int ny;
+
+	unsigned short attackerX = attacker->GetX();
+	unsigned short attackerY = attacker->GetY();
+	char attackerDirection = attacker->GetDirection();
+
+	int dist = -1;
+	int distAttackerToTarget;
+	for (int i = 0; i < attackRangeSector._Count; i++)
+	{
+		nx = attackRangeSector._Surround[i].x;
+		ny = attackRangeSector._Surround[i].y;
+		for (auto AroundPlayer : _pSector->_Sector[ny][nx])
+		{
+			if (attacker->GetPlayerId() == AroundPlayer->GetPlayerId())
+			{
+				continue;
+			}
+			//공격범위에 있는 경우
+			if (CheckAttackInRange(
+				attackerX, attackerY,
+				AttackRangeX, AttackRangeY,
+				AroundPlayer->GetX(), AroundPlayer->GetY(), attackerDirection
+			))
+			{
+				//가장 가까운 Player 찾기
+				distAttackerToTarget = abs(attackerX - AroundPlayer->GetX()) + abs(attackerY - AroundPlayer->GetY());
+				if (dist < distAttackerToTarget)
+				{
+					dist = distAttackerToTarget;
+					target = AroundPlayer;
+				}
+			}
+		}
+	}
+	return;
+}
+
 bool GameServer::CheckAttackInRange(const short attackerX, const short attackerY, const int AttackRangeX, const int AttackRangeY, const short targetX, const short targetY, const char direction)
 {
-	if (direction == static_cast<int>(CHARCTER_DIRECTION_2D::RIGHT))
+	if (direction == CHARACTER_DIRECTION_RIGHT)
 	{
 		if (attackerX < targetX && targetX <= (attackerX + AttackRangeX) && abs(attackerY - targetY) <= AttackRangeY)
 		{
@@ -579,7 +602,7 @@ bool GameServer::CheckAttackInRange(const short attackerX, const short attackerY
 bool GameServer::CheckDirection(char direction)
 {
 	//좌/우가 아닌경우 무시
-	if (direction == static_cast<int>(CHARCTER_DIRECTION_2D::LEFT) || direction == static_cast<int>(CHARCTER_DIRECTION_2D::RIGHT))
+	if (direction == CHARACTER_DIRECTION_LEFT || direction == CHARACTER_DIRECTION_RIGHT)
 	{
 		return true;
 	}
@@ -735,7 +758,7 @@ void GameServer::update()
 		SerializeBuffer* sBuffer = _SbufferPool->allocate();
 
 		SendDeleteMessage_DeletedSector(cur, sBuffer, deleteArea);
-		SendDeleteMessage_DeletedSector(cur, sBuffer, addArea);
+		SendCreateMessage_AddSector(cur, sBuffer, addArea);
 
 		_SbufferPool->deAllocate(sBuffer);
 #ifdef GAME_DEBUG

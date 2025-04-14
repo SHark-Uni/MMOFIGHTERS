@@ -45,6 +45,9 @@ int main()
 		if (sleepTime > 0)
 		{
 			Sleep(sleepTime);
+		}else 
+		{
+			  
 		}
 		// delayed 타임을 계산해서, delay된 타임이 1프레임이 넘어간다면 update로  따라가기.
 

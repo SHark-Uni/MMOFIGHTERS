@@ -1,11 +1,6 @@
 #pragma once
 namespace Core
 {
-	enum class CHARCTER_DIRECTION_2D
-	{
-		LEFT = 0,
-		RIGHT = 4
-	};
 	enum class MOVE_DIRECTION
 	{
 		LEFT = 0,
