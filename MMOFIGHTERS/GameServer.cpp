@@ -8,8 +8,6 @@
 #include "ObjectPool.h"
 #include "ContentDefine.h"
 
-#include <cassert>
-
 using namespace NetLib;
 using namespace Core;
 using namespace Common;
@@ -28,12 +26,7 @@ void Core::GameServer::registPlayerPool(ObjectPool<Player, PLAYER_POOL_SIZE, fal
 {
 	_PlayerPool = pool;
 }
-/*==================================
-onAcceptProc에서 할일
-1. 플레이어 생성 (Contents코드에서
-2. 다른 플레이어에게 내 플레이어 생성 메시지 보내기
-3. 기존 플레이어들 나에게 생성 메시지 보내기
-===================================*/
+
 void GameServer::OnAcceptProc(const SESSION_KEY key)
 {
 	int playerKey;
@@ -153,7 +146,150 @@ void GameServer::OnRecvProc(SerializeBuffer* message, const char msgType, SESSIO
 	}
 	return;
 }
-/* 컨텐츠 구현 하기! 예외 케이스들 생각해보자.*/
+
+void GameServer::OnDestroyProc(const SESSION_KEY key)
+{
+	const auto& iter = _keys.find(key);
+	//유효하지 않은 세션키?
+	if (iter == _keys.end())
+	{
+		DebugBreak();
+		return;
+	}
+
+	PLAYER_KEY playerKey = iter->second;
+	const auto& iter2 = _Players.find(playerKey);
+	if (iter2 == _Players.end())
+	{
+		//유효하지 않은 플레이어키?
+		DebugBreak();
+		return;
+	}
+
+	Player* DeathPlayer = iter2->second;
+
+#ifdef GAME_DEBUG
+	printf("============================================================\n");
+	printf("DELETE CHARACTER MESSAGE\n");
+	printf("PLAYER ID : %d \n", playerKey);
+	printf("============================================================\n");
+#endif
+	Disconnect(key);
+	DeathPlayer->SetPlayerDeath();
+}
+
+void GameServer::cleanUpPlayer()
+{
+	//진짜 지우는 경우
+	auto iter = _Players.begin();
+	auto iter_e = _Players.end();
+
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+
+	for (; iter != iter_e; )
+	{
+		Player* cur = iter->second;
+		int key = iter->first;
+
+		if (cur->IsAlive() == false)
+		{
+			sBuffer->clear();
+			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), key, sBuffer);
+			SendBroadCast(cur->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+
+			_keys.erase(cur->GetSessionId());
+			_PlayerPool->deAllocate(cur);
+			iter = _Players.erase(iter);
+			continue;
+		}
+		++iter;
+	}
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::update()
+{
+	//프레임마다 움직이기.
+	for (auto& player : _Players)
+	{
+		Player* cur = player.second;
+		if (cur->GetHp() <= 0)
+		{
+#ifdef GAME_DEBUG
+			printf("PLAYER DIE DISCONNECT!\n");
+#endif		
+			OnDestroyProc(cur->GetSessionId());
+			continue;
+		}
+#ifdef GAME_DEBUG
+		//FOR DEBUG
+		int prevX = cur->GetX();
+		int prevY = cur->GetY();
+#endif
+		int action = cur->GetAction();
+		switch (action)
+		{
+		case static_cast<int>(MOVE_DIRECTION::LEFT):
+			cur->Move(-(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED)), 0);
+			break;
+		case static_cast<int>(MOVE_DIRECTION::LEFT_TOP):
+			cur->Move(-(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED)), -(static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED)));
+			break;
+		case static_cast<int>(MOVE_DIRECTION::TOP):
+			cur->Move(0, -(static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED)));
+			break;
+		case static_cast<int>(MOVE_DIRECTION::RIGHT_TOP):
+			cur->Move(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED), -(static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED)));
+			break;
+		case static_cast<int>(MOVE_DIRECTION::RIGHT):
+			cur->Move(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED), 0);
+			break;
+		case static_cast<int>(MOVE_DIRECTION::RIGHT_BOTTOM):
+			cur->Move(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED), static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED));
+			break;
+		case static_cast<int>(MOVE_DIRECTION::BOTTOM):
+			cur->Move(0, static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED));
+			break;
+		case static_cast<int>(MOVE_DIRECTION::LEFT_BOTTOM):
+			cur->Move(-(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED)), static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED));
+			break;
+		default:
+			break;
+		}
+
+		if (cur->GetSector() == cur->GetPrevSector())
+		{
+			continue;
+		}
+		//섹터 이동해줘야함. 이전 섹터에서 빼주고, 현재 섹터에 등록
+		_pSector->dropOutPlayer(cur->GetPrevSector(), cur);
+		_pSector->enrollPlayer(cur->GetSector(), cur);
+
+		//새로운 섹터를 기반으로 Message처리
+		SECTOR_SURROUND deleteArea;
+		SECTOR_SURROUND addArea;
+		_pSector->getUpdateSurroundSector(cur->GetPrevSector(), cur->GetSector(), deleteArea, addArea);
+
+		SerializeBuffer* sBuffer = _SbufferPool->allocate();
+
+		SendDeleteMessage_DeletedSector(cur, sBuffer, deleteArea);
+		SendCreateMessage_AddSector(cur, sBuffer, addArea);
+
+		_SbufferPool->deAllocate(sBuffer);
+#ifdef GAME_DEBUG
+		int nextX = cur->GetX();
+		int nextY = cur->GetY();
+		if (prevX == nextX && prevY == nextY)
+		{
+			continue;
+		}
+		printf("PLAYER ID : %d | PLAYER X : %hd  |  PLAYER Y : %hd \n", cur->GetPlayerId(), nextX, nextY);
+#endif
+	}
+
+
+}
+
 void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY key)
 {
 	char action;
@@ -434,7 +570,6 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 		DebugBreak();
 	}
 
-	//이상향 방향이 들어왔다면 무시. (그럴일은 없겠지만)
 	if (CheckDirection(attackDir) == false)
 	{
 		return;
@@ -609,37 +744,6 @@ bool GameServer::CheckDirection(char direction)
 	return false;
 }
 
-void GameServer::OnDestroyProc(const SESSION_KEY key)
-{
-	const auto& iter = _keys.find(key);
-	//유효하지 않은 세션키?
-	if (iter == _keys.end())
-	{
-		DebugBreak();
-		return;
-	}
-
-	PLAYER_KEY playerKey = iter->second;
-	const auto& iter2 = _Players.find(playerKey);
-	if (iter2 == _Players.end())
-	{
-		//유효하지 않은 플레이어키?
-		DebugBreak();
-		return;
-	}
-
-	Player* DeathPlayer = iter2->second;
-
-#ifdef GAME_DEBUG
-	printf("============================================================\n");
-	printf("DELETE CHARACTER MESSAGE\n");
-	printf("PLAYER ID : %d \n", playerKey);
-	printf("============================================================\n");
-#endif
-	Disconnect(key);
-	DeathPlayer->SetPlayerDeath();
-}
-
 void GameServer::SendToSector(Common::SerializeBuffer* message, const Player* player)
 {
 	SECTOR_SURROUND around;
@@ -663,114 +767,4 @@ void GameServer::SendToSector(Common::SerializeBuffer* message, const Player* pl
 	
 }
 
-void GameServer::cleanUpPlayer()
-{
-	//진짜 지우는 경우
-	auto iter = _Players.begin();
-	auto iter_e = _Players.end();
 
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-
-	for (; iter != iter_e; )
-	{
-		Player* cur = iter->second;
-		int key = iter->first;
-
-		if (cur->IsAlive() == false)
-		{
-			sBuffer->clear();
-			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), key, sBuffer);
-			SendBroadCast(cur->GetSessionId(), sBuffer,sBuffer->getUsedSize());
-
-			_keys.erase(cur->GetSessionId());
-			_PlayerPool->deAllocate(cur);
-			iter = _Players.erase(iter);
-			continue;
-		}
-		++iter;
-	}
-	_SbufferPool->deAllocate(sBuffer); 
-}
-//프레임 로직 
-void GameServer::update()
-{
-	//프레임마다 움직이기.
-	for (auto& player : _Players)
-	{
-		Player* cur = player.second;
-		if (cur->GetHp() <= 0)
-		{
-#ifdef GAME_DEBUG
-			printf("PLAYER DIE DISCONNECT!\n");
-#endif		
-			OnDestroyProc(cur->GetSessionId());
-			continue;
-		}
-#ifdef GAME_DEBUG
-		//FOR DEBUG
-		int prevX = cur->GetX();
-		int prevY = cur->GetY();
-#endif
-		int action = cur->GetAction();
-		switch (action)
-		{
-		case static_cast<int>(MOVE_DIRECTION::LEFT):
-			cur->Move(-(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED)), 0);
-			break;
-		case static_cast<int>(MOVE_DIRECTION::LEFT_TOP):
-			cur->Move(-(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED)), -(static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED)));
-			break;
-		case static_cast<int>(MOVE_DIRECTION::TOP):
-			cur->Move(0, -(static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED)));
-			break;
-		case static_cast<int>(MOVE_DIRECTION::RIGHT_TOP):
-			cur->Move(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED), -(static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED)));
-			break;
-		case static_cast<int>(MOVE_DIRECTION::RIGHT):
-			cur->Move(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED), 0);
-			break;
-		case static_cast<int>(MOVE_DIRECTION::RIGHT_BOTTOM):
-			cur->Move(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED), static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED));
-			break;
-		case static_cast<int>(MOVE_DIRECTION::BOTTOM):
-			cur->Move(0, static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED));
-			break;
-		case static_cast<int>(MOVE_DIRECTION::LEFT_BOTTOM):
-			cur->Move(-(static_cast<short>(PLAYER_MOVE_SPEED::X_SPEED)), static_cast<short>(PLAYER_MOVE_SPEED::Y_SPEED));
-			break;
-		default:
-			break;
-		}
-
-		if (cur->GetSector() == cur->GetPrevSector())
-		{
-			continue;
-		}
-		//섹터 이동해줘야함. 이전 섹터에서 빼주고, 현재 섹터에 등록
-		_pSector->dropOutPlayer(cur->GetPrevSector(), cur);
-		_pSector->enrollPlayer(cur->GetSector(), cur);
-		
-		//새로운 섹터를 기반으로 Message처리
-		SECTOR_SURROUND deleteArea;
-		SECTOR_SURROUND addArea;
-		_pSector->getUpdateSurroundSector(cur->GetPrevSector(), cur->GetSector(), deleteArea, addArea);
-
-		SerializeBuffer* sBuffer = _SbufferPool->allocate();
-
-		SendDeleteMessage_DeletedSector(cur, sBuffer, deleteArea);
-		SendCreateMessage_AddSector(cur, sBuffer, addArea);
-
-		_SbufferPool->deAllocate(sBuffer);
-#ifdef GAME_DEBUG
-		int nextX = cur->GetX();
-		int nextY = cur->GetY();
-		if (prevX == nextX && prevY == nextY)
-		{
-			continue;
-		}
-		printf("PLAYER ID : %d | PLAYER X : %hd  |  PLAYER Y : %hd \n", cur->GetPlayerId(), nextX, nextY);
-#endif
-	}
-
-
-}

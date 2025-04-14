@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ContentDefine.h"
+#include <list>
 
 namespace Core
 {
@@ -76,13 +77,13 @@ namespace Core
 			int cnt = 0;
 			for (int offsetX = 0; offsetX < 2; offsetX++)
 			{
-				if ((sector_x + offsetX) >= SECTOR_MAX_COLUMN || (sector_x + offsetX) < 0)
+				if ((sector_x + offsetX) >= Common::SECTOR_MAX_COLUMN || (sector_x + offsetX) < 0)
 				{
 					continue;
 				}
 				for (int offsetY = -1; offsetY <= 1; offsetY++)
 				{
-					if ((sector_y + offsetY) < 0 || (sector_y + offsetY) >= SECTOR_MAX_ROW)
+					if ((sector_y + offsetY) < 0 || (sector_y + offsetY) >= Common::SECTOR_MAX_ROW)
 					{
 						continue;
 					}
@@ -98,13 +99,13 @@ namespace Core
 			int cnt = 0;
 			for (int offsetX = 0; offsetX <= -1; offsetX--)
 			{
-				if ((sector_x + offsetX) >= SECTOR_MAX_COLUMN || (sector_x + offsetX) < 0)
+				if ((sector_x + offsetX) >= Common::SECTOR_MAX_COLUMN || (sector_x + offsetX) < 0)
 				{
 					continue;
 				}
 				for (int offsetY = -1; offsetY <= 1; offsetY++)
 				{
-					if ((sector_y + offsetY) < 0 || (sector_y + offsetY) >= SECTOR_MAX_ROW)
+					if ((sector_y + offsetY) < 0 || (sector_y + offsetY) >= Common::SECTOR_MAX_ROW)
 					{
 						continue;
 					}

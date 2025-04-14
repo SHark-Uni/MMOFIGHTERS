@@ -6,6 +6,8 @@
 #include "Session.h"
 #include "GameServer.h"
 
+#include "Player2.h"
+
 using namespace Common;
 using namespace NetLib;
 using namespace Core;
@@ -17,6 +19,7 @@ int main()
 	int sleepTime;
 
 	ObjectPool<Player, PLAYER_POOL_SIZE, false> playerPool;
+	//힙손상 ?
 	ObjectPool<Session, SESSION_POOL_SIZE, false> sessionPool;
 	ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false> sBufferPool;
 

@@ -82,31 +82,6 @@ namespace Common
 			_CurSlot++;
 			return ret;
 		}
-
-		//개체가 포인터를 갖는경우, 그 포인터를 안날려주고 싶을 수 있음.
-		//template<class... Args>
-		//T* allocate_reuse(Args&&... args)
-		//{
-		//	T* element;
-		//	if (_FreeList != nullptr)
-		//	{
-		//		element = &_FreeList->_Data;
-		//		_FreeList = _FreeList->_pNext;
-		//		return element;
-		//	}
-
-		//	//진짜 새롭게 할당해주어야 하는 대상이라면
-		//	if (_CurSlot >= _LastSlot)
-		//	{
-		//		allocateBucket();
-		//	}
-
-		//	element = reinterpret_cast<T*>(&_CurSlot->_Data);
-		//	new (static_cast<void*>(element)) T(std::forward<Args>(args)...);
-		//	_CurSlot++;
-		//	return element;
-		//}
-
 		void deAllocate(T* addr)
 		{
 			if (addr != nullptr)
@@ -127,13 +102,13 @@ namespace Common
 
 		void allocateBucket_with_default_constructor()
 		{
-			Slot* newBucket = reinterpret_cast<Slot*>(operator new(sizeof(Slot) * (BucketCount + DUMMY_SIZE)));
+			Slot* newBucket = reinterpret_cast<Slot*>(operator new(sizeof(Slot) * (BucketCount + 1)));
 
 			newBucket->_pNext = _CurBucket;
 
 			_CurBucket = newBucket;
-			_CurSlot = _CurBucket + DUMMY_SIZE;
-			_LastSlot = newBucket + (BucketCount + DUMMY_SIZE);
+			_CurSlot = _CurBucket + 1;
+			_LastSlot = newBucket + (BucketCount + 1);
 
 			char* tmp = reinterpret_cast<char*>(_CurSlot);
 			tmp += sizeof(Slot*);
@@ -148,14 +123,14 @@ namespace Common
 		template<class... Args>
 		void allocateBucket_with_constructor(Args&&... args)
 		{
-			Slot* newBucket = reinterpret_cast<Slot*>(operator new(sizeof(Slot) * (BucketCount + DUMMY_SIZE)));
+			Slot* newBucket = reinterpret_cast<Slot*>(operator new(sizeof(Slot) * (BucketCount + 1)));
 			//맨 앞을 더미로 쓸꺼임.
 
 			newBucket->_pNext = _CurBucket;
 
 			_CurBucket = newBucket;
-			_CurSlot = _CurBucket + DUMMY_SIZE;
-			_LastSlot = newBucket + (BucketCount + DUMMY_SIZE);
+			_CurSlot = _CurBucket + 1;
+			_LastSlot = newBucket + (BucketCount + 1);
 
 			char* tmp = reinterpret_cast<char*>(_CurSlot);
 			tmp += sizeof(Slot*);
@@ -167,9 +142,6 @@ namespace Common
 				tmp = tmp + offset;
 			}
 		}
-		enum {
-			DUMMY_SIZE = 1,
-		};
 
 		Slot* _CurBucket;
 		Slot* _CurSlot;
@@ -253,16 +225,12 @@ namespace Common
 
 		void allocateBucket()
 		{
-			Slot* newBucket = reinterpret_cast<Slot*>(operator new(sizeof(Slot) * (BucketCount + DUMMY_SIZE)));
+			Slot* newBucket = reinterpret_cast<Slot*>(operator new(sizeof(Slot) * (BucketCount + 1)));
 			newBucket->_pNext = _CurBucket;
 			_CurBucket = newBucket;
-			_CurSlot = _CurBucket + DUMMY_SIZE;
-			_LastSlot = newBucket + (BucketCount + DUMMY_SIZE);
+			_CurSlot = _CurBucket + 1;
+			_LastSlot = newBucket + (BucketCount + 1);
 		}
-
-		enum {
-			DUMMY_SIZE = 1,
-		};
 
 		Slot* _CurBucket;
 		Slot* _CurSlot;

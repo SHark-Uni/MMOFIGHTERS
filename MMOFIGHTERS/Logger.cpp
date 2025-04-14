@@ -1,6 +1,5 @@
 #include <iostream>
 #include <time.h>
-#include <cassert>
 #include "Logger.h"
 
 using namespace Common;

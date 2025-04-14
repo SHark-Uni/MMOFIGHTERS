@@ -68,9 +68,9 @@ void Player::Attacked(const int damage)
 bool Core::Player::CheckWallCollision(const int x, const int y)
 {
 	if (x < static_cast<short>(RANGE_MOVE_LEFT)
-		|| x >= static_cast<short>(RANGE_MOVE_RIGHT)
+		|| x > static_cast<short>(RANGE_MOVE_RIGHT)
 		|| y < static_cast<short>(RANGE_MOVE_TOP)
-		|| y >= static_cast<short>(RANGE_MOVE_BOTTOM))
+		|| y > static_cast<short>(RANGE_MOVE_BOTTOM))
 	{
 		return true;
 	}
