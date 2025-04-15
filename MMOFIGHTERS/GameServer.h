@@ -31,7 +31,7 @@ namespace Core
 		void ReqAttackLeftHandProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqAttackRightHandProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqAttackKickProc(Common::SerializeBuffer* message, const SESSION_KEY key);
-
+		void ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key);
 		//* 반복되는 코드 모듈로 뺌. 컨텐츠 코드 긴함. *//
 		void SendDeleteMessage_DeletedSector(const Player* player, Common::SerializeBuffer* sBuffer, const SECTOR_SURROUND& deleteSector);
 		void SendCreateMessage_AddSector(const Player* player, Common::SerializeBuffer* sBuffer, const SECTOR_SURROUND& addSector);

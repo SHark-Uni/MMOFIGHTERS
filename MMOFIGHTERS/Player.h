@@ -120,5 +120,6 @@ namespace Core
 		short _Y;
 
 		char _Hp;
+		DWORD _LastTime;
 	};
 }

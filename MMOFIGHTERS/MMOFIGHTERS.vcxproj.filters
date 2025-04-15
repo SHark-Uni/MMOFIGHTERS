@@ -35,6 +35,9 @@
     <Filter Include="GameServer\Sector">
       <UniqueIdentifier>{84dfa12e-f051-4fdb-987d-f3b36aa39a8d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameServer\Timer">
+      <UniqueIdentifier>{f4fab18a-bb9a-409c-aa3d-a0e889a9377a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -107,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="Sector.h">
       <Filter>GameServer\Sector</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameManager.h">
+      <Filter>GameServer\Timer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

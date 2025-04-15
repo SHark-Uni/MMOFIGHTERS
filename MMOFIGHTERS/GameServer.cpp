@@ -136,6 +136,9 @@ void GameServer::OnRecvProc(SerializeBuffer* message, const char msgType, SESSIO
 	case static_cast<int>(MESSAGE_DEFINE::REQ_ATTACK_KICK):
 		ReqAttackKickProc(message, key);
 		break;
+	case static_cast<int>(MESSAGE_DEFINE::REQ_ECHO):
+		ReqEcho(message, key);
+		break;
 	default:
 #ifdef GAME_DEBUG
 		//TODO : 연결 끊어야함.
@@ -606,6 +609,18 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 		SendToSector(sBuffer, target);
 	}
 
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key)
+{
+	//받은거 그대로 돌려주기.
+	int time;
+	*message >> time;
+
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	buildMsg_Echo(static_cast<char>(MESSAGE_DEFINE::RES_ECHO), time, sBuffer);
+	SendUniCast(key, sBuffer, sBuffer->getUsedSize());
 	_SbufferPool->deAllocate(sBuffer);
 }
 

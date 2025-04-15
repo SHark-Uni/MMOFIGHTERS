@@ -142,6 +142,7 @@
     <ClInclude Include="Config.h" />
     <ClInclude Include="ContentDefine.h" />
     <ClInclude Include="ErrorMessage.h" />
+    <ClInclude Include="FrameManager.h" />
     <ClInclude Include="GameServer.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MessageBuilder.h" />

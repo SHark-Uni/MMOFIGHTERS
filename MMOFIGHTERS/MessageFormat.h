@@ -26,6 +26,8 @@ namespace Common
 
 		REQ_SYNC = 250,
 		RES_SYNC,
+		REQ_ECHO,
+		RES_ECHO
 	};
 	enum class MOVE_DIRECTION
 	{

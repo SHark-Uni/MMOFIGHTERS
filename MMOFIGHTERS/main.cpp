@@ -5,33 +5,36 @@
 #include "NetLib.h"
 #include "Session.h"
 #include "GameServer.h"
+#include "FrameManager.h"
 
 using namespace Common;
 using namespace NetLib;
 using namespace Core;
 
+
 int main()
 {
 	::timeBeginPeriod(1);
-	DWORD nextTick;
 	int sleepTime;
 
-	ObjectPool<Player, PLAYER_POOL_SIZE, false> playerPool;
-	//힙손상 ?
-	ObjectPool<Session, SESSION_POOL_SIZE, false> sessionPool;
-	ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false> sBufferPool;
+
+	ObjectPool<Player, PLAYER_POOL_SIZE, false>* playerPool = new ObjectPool<Player, PLAYER_POOL_SIZE, false>();
+	ObjectPool<Session, SESSION_POOL_SIZE, false>* sessionPool = new ObjectPool<Session, SESSION_POOL_SIZE, false>();
+	ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>* sBufferPool = new ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>();
+	FrameManager* frameManager = new FrameManager();
 
 	GameServer* gameServer = new GameServer();
-	gameServer->registSessionPool(&sessionPool);
-	gameServer->registPlayerPool(&playerPool);
-	gameServer->registSBufferPool(&sBufferPool);
+	gameServer->registSessionPool(sessionPool);
+	gameServer->registPlayerPool(playerPool);
+	gameServer->registSBufferPool(sBufferPool);
 
 	if (gameServer->Init() != eERROR_MESSAGE::SUCCESS)
 	{
 		return 0;
 	}
 
-	nextTick = timeGetTime();
+	int delayedTime = 0;
+	frameManager->SetTimer();
 	while (true)
 	{
 		//네트워크
@@ -40,19 +43,24 @@ int main()
 		gameServer->update();
 		gameServer->cleanUpPlayer();
 		gameServer->CleanupSession();
+		
+		frameManager->DisplayFrameInfo();
 
-		nextTick += TIME_PER_FRAME;
-		sleepTime = nextTick - timeGetTime();
+		sleepTime = frameManager->CalculateSleepTime();
 		if (sleepTime > 0)
 		{
 			Sleep(sleepTime);
 		}else 
 		{
-			  
+			delayedTime += abs(sleepTime);
+			if (delayedTime >= 20)
+			{
+				for (int i = 0; i < delayedTime / 20; i++)
+				{
+					gameServer->update();
+				}
+			}
 		}
-		// delayed 타임을 계산해서, delay된 타임이 1프레임이 넘어간다면 update로  따라가기.
-
-
 	}
 	return 0;
 }

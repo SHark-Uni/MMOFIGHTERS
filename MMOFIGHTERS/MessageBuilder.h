@@ -137,4 +137,15 @@ namespace Core
 		message->setHeader(SIGNITURE, type, sizeof(playerId) + sizeof(x) + sizeof(y));
 		return;
 	}
+
+	inline void buildMsg_Echo(_BYTE type, int time, Common::SerializeBuffer* message)
+	{
+		message->reserveHeader();
+		*message << time;
+		if (message->checkFailBit())
+		{
+			DebugBreak();
+		}
+		message->setHeader(SIGNITURE, type, sizeof(time));
+	}
 }
