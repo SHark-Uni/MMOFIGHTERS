@@ -33,12 +33,10 @@ namespace Common
 				cur = prev;
 			}
 		}
-
 		inline bool empty() const
 		{
 			return (_FreeList == nullptr);
 		}
-
 		T* allocate()
 		{
 			T* ret;
@@ -50,17 +48,16 @@ namespace Common
 			}
 
 			//다 소모함 
-			if (_CurSlot >= _LastSlot)
+			if (_CurSlot > _LastSlot)
 			{
 				//allocateBucket();
 				allocateBucket_with_default_constructor();
 			}
 
 			ret = reinterpret_cast<T*>(&_CurSlot->_Data);
-			_CurSlot++;
+			++_CurSlot;
 			return ret;
 		}
-
 		template<class... Args>
 		T* allocate(Args&&... args)
 		{
@@ -73,7 +70,7 @@ namespace Common
 			}
 
 			//다 소모함 
-			if (_CurSlot >= _LastSlot)
+			if (_CurSlot > _LastSlot)
 			{
 				//allocateBucket();
 				allocateBucket_with_constructor(std::forward<Args>(args)...);
@@ -92,14 +89,13 @@ namespace Common
 				return;
 			}
 		}
-
+	
 	private:
 		struct Slot
 		{
 			struct Slot* _pNext;
 			T _Data;
 		};
-
 		void allocateBucket_with_default_constructor()
 		{
 			Slot* newBucket = reinterpret_cast<Slot*>(operator new(sizeof(Slot) * (BucketCount + 1)));
@@ -108,16 +104,17 @@ namespace Common
 
 			_CurBucket = newBucket;
 			_CurSlot = _CurBucket + 1;
-			_LastSlot = newBucket + (BucketCount + 1);
+			_LastSlot = newBucket + (BucketCount);
 
-			char* tmp = reinterpret_cast<char*>(_CurSlot);
-			tmp += sizeof(Slot*);
-			size_t offset = sizeof(T) + sizeof(Slot*);
+			char* tmp = reinterpret_cast<char*>(_CurSlot) + sizeof(Slot*);
+			size_t padding = (reinterpret_cast<char*>(_CurSlot) + sizeof(Slot)) - (tmp + sizeof(T));
+			size_t offset = sizeof(T) + sizeof(Slot*) + padding;
+			Slot* BucketEnd = (_LastSlot + 1);
 
-			while (reinterpret_cast<Slot*>(tmp) <= _LastSlot)
+			while (reinterpret_cast<Slot*>(tmp) < BucketEnd)
 			{
 				new (static_cast<void*>(tmp)) T();
-				tmp = tmp + offset;
+				tmp += offset;
 			}
 		}
 		template<class... Args>
@@ -130,13 +127,14 @@ namespace Common
 
 			_CurBucket = newBucket;
 			_CurSlot = _CurBucket + 1;
-			_LastSlot = newBucket + (BucketCount + 1);
+			_LastSlot = newBucket + (BucketCount);
 
-			char* tmp = reinterpret_cast<char*>(_CurSlot);
-			tmp += sizeof(Slot*);
-			size_t offset = sizeof(T) + sizeof(Slot*);
+			char* tmp = reinterpret_cast<char*>(_CurSlot) + sizeof(Slot*);
+			size_t padding = (reinterpret_cast<char*>(_CurSlot) + sizeof(Slot)) - (tmp + sizeof(T));
+			size_t offset = sizeof(T) + sizeof(Slot*) + padding;
+			Slot* BucketEnd = (_LastSlot + 1);
 
-			while (reinterpret_cast<Slot*>(tmp) <= _LastSlot)
+			while (reinterpret_cast<Slot*>(tmp) < _LastSlot)
 			{
 				new (static_cast<void*>(tmp)) T(std::forward<Args>(args)...);
 				tmp = tmp + offset;
@@ -178,7 +176,6 @@ namespace Common
 		{
 			return (_FreeList == nullptr);
 		}
-
 		template<class... Args>
 		T* allocate_PlacementNew(Args&&... args)
 		{
@@ -199,13 +196,11 @@ namespace Common
 			new (static_cast<void*>(element)) T(std::forward<Args>(args)...);
 			return element;
 		}
-
 		void deallocate_Destructor(T* pMemory)
 		{
 			pMemory->~T();
 			deAllocate(pMemory);
 		}
-
 		void deAllocate(T* addr)
 		{
 			if (addr != nullptr)
@@ -222,7 +217,6 @@ namespace Common
 			struct Slot* _pNext;
 			T _Data;
 		};
-
 		void allocateBucket()
 		{
 			Slot* newBucket = reinterpret_cast<Slot*>(operator new(sizeof(Slot) * (BucketCount + 1)));

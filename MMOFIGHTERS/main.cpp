@@ -6,8 +6,6 @@
 #include "Session.h"
 #include "GameServer.h"
 
-#include "Player2.h"
-
 using namespace Common;
 using namespace NetLib;
 using namespace Core;
