@@ -120,6 +120,6 @@ namespace Core
 		short _Y;
 
 		char _Hp;
-		DWORD _LastTime;
+		unsigned long _LastTime;
 	};
 }

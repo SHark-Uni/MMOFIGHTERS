@@ -24,7 +24,7 @@ namespace Core
 	{
 		int _Count;
 		struct SECTOR_POS _Surround[9];
-	};
+	}sector_surround_t;
 	
 	class Player;
 	class GameServer;
@@ -97,7 +97,7 @@ namespace Core
 		inline void getLeftSideSector(const int sector_x, const int sector_y, SECTOR_SURROUND& leftSide)
 		{
 			int cnt = 0;
-			for (int offsetX = 0; offsetX <= -1; offsetX--)
+			for (int offsetX = 0; offsetX >= -1; offsetX--)
 			{
 				if ((sector_x + offsetX) >= Common::SECTOR_MAX_COLUMN || (sector_x + offsetX) < 0)
 				{

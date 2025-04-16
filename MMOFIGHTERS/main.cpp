@@ -15,8 +15,6 @@ using namespace Core;
 int main()
 {
 	::timeBeginPeriod(1);
-	int sleepTime;
-
 
 	ObjectPool<Player, PLAYER_POOL_SIZE, false>* playerPool = new ObjectPool<Player, PLAYER_POOL_SIZE, false>();
 	ObjectPool<Session, SESSION_POOL_SIZE, false>* sessionPool = new ObjectPool<Session, SESSION_POOL_SIZE, false>();
