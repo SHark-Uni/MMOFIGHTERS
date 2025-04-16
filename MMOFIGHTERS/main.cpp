@@ -22,11 +22,14 @@ int main()
 	ObjectPool<Session, SESSION_POOL_SIZE, false>* sessionPool = new ObjectPool<Session, SESSION_POOL_SIZE, false>();
 	ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>* sBufferPool = new ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>();
 	FrameManager* frameManager = new FrameManager();
+	Sector* sector = new Sector();
 
 	GameServer* gameServer = new GameServer();
 	gameServer->registSessionPool(sessionPool);
 	gameServer->registPlayerPool(playerPool);
 	gameServer->registSBufferPool(sBufferPool);
+	gameServer->registFrameManager(frameManager);
+	gameServer->registSector(sector);
 
 	if (gameServer->Init() != eERROR_MESSAGE::SUCCESS)
 	{
@@ -34,33 +37,13 @@ int main()
 	}
 
 	int delayedTime = 0;
-	frameManager->SetTimer();
+	frameManager->InitTimer();
 	while (true)
 	{
 		//네트워크
 		gameServer->Process();
 		//프레임 로직
-		gameServer->update();
-		gameServer->cleanUpPlayer();
-		gameServer->CleanupSession();
-		
-		frameManager->DisplayFrameInfo();
-
-		sleepTime = frameManager->CalculateSleepTime();
-		if (sleepTime > 0)
-		{
-			Sleep(sleepTime);
-		}else 
-		{
-			delayedTime += abs(sleepTime);
-			if (delayedTime >= 20)
-			{
-				for (int i = 0; i < delayedTime / 20; i++)
-				{
-					gameServer->update();
-				}
-			}
-		}
+		gameServer->fixedUpdate();
 	}
 	return 0;
 }

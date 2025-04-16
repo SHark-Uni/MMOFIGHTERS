@@ -16,15 +16,27 @@ GameServer::GameServer()
 {
 	_Players.reserve(PLAYER_RESERVER_SIZE);
 	_keys.reserve(PLAYER_RESERVER_SIZE);
+	_DelayedTime = 0;
 }
 
 GameServer::~GameServer()
 {
 
 }
-void Core::GameServer::registPlayerPool(ObjectPool<Player, PLAYER_POOL_SIZE, false>* pool)
+
+void GameServer::registPlayerPool(ObjectPool<Player, PLAYER_POOL_SIZE, false>* pool)
 {
 	_PlayerPool = pool;
+}
+
+void GameServer::registSector(Sector* sector)
+{
+	_pSector = sector;
+}
+
+void GameServer::registFrameManager(FrameManager* frameManager)
+{
+	_FrameManager = frameManager;
 }
 
 void GameServer::OnAcceptProc(const SESSION_KEY key)
@@ -279,6 +291,7 @@ void GameServer::update()
 		SendCreateMessage_AddSector(cur, sBuffer, addArea);
 
 		_SbufferPool->deAllocate(sBuffer);
+
 #ifdef GAME_DEBUG
 		int nextX = cur->GetX();
 		int nextY = cur->GetY();
@@ -289,8 +302,31 @@ void GameServer::update()
 		printf("PLAYER ID : %d | PLAYER X : %hd  |  PLAYER Y : %hd \n", cur->GetPlayerId(), nextX, nextY);
 #endif
 	}
+	cleanUpPlayer();
+	CleanupSession();
+}
 
+void Core::GameServer::fixedUpdate()
+{
+	DWORD deltaTime = _FrameManager->CalculateTimeInterval();
+	if (deltaTime < TIME_PER_FRAME)
+	{
+		Sleep(TIME_PER_FRAME - deltaTime);
+	}
+	else
+	{
+		_DelayedTime += (deltaTime - TIME_PER_FRAME);
 
+		if (_DelayedTime >= TIME_PER_FRAME)
+		{
+			for (int i = 0; i < _DelayedTime / TIME_PER_FRAME; i++)
+			{
+				update(); 
+			}
+			_DelayedTime %= TIME_PER_FRAME;
+		}
+	}
+	_FrameManager->DisplayFrameInfo();
 }
 
 void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY key)

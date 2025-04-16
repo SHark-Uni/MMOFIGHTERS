@@ -9,59 +9,75 @@ namespace Core
 {
 	constexpr int FRAME = 50;
 	constexpr int TIME_PER_FRAME = 1000 / FRAME;
-	class GameServer;
 	class FrameManager
 	{
 	public:
-		inline void SetTimer()
+		inline void InitTimer()
 		{
 			_deltaTime.reserve(64);
-			_NextTick = timeGetTime();
-			_FrameOutPutTime = _NextTick;
+			_PrevTick = timeGetTime();
+			_FrameOutPutTime = _PrevTick;
 		}
-		inline int fixedUpdate(GameServer* gameServer)
+		inline DWORD GetPrevTime() const
 		{
-
-			_NextTick += TIME_PER_FRAME;
-			int sleepTime =  _NextTick - ::timeGetTime();
-			//_deltaTime.push_back();
-
-
-			return sleepTime;
+			return _PrevTick;
 		}
+
+		inline void SetTimer(DWORD prevtick)
+		{
+			_PrevTick = prevtick;
+		}
+
+		inline DWORD CalculateTimeInterval()
+		{
+			DWORD curTime = ::timeGetTime();
+			DWORD ret = curTime - _PrevTick;
+
+			if (ret < TIME_PER_FRAME)
+			{
+				_deltaTime.push_back(TIME_PER_FRAME);
+			}
+			else
+			{
+				_deltaTime.push_back(ret);
+			}
+			_PrevTick += TIME_PER_FRAME;
+			return ret;
+		}
+
 		inline void DisplayFrameInfo()
 		{
-			if (_FrameOutPutTime - ::timeGetTime() >= 1000)
+			DWORD curTime = ::timeGetTime();
+			DWORD maxDeltaTime = 0;
+			DWORD minDeltaTime = INT_MAX;
+			if (_FrameOutPutTime - curTime >= 1000)
 			{
-				//·Î±ëÁ¤º¸ Âï±â
+				_FrameOutPutTime = curTime;
 				size_t len = _deltaTime.size();
-				int max = INT_MIN;
-
 				for (int i = 0; i < len; i++)
 				{
-					if (max < _deltaTime[i])
+					if (maxDeltaTime < _deltaTime[i])
 					{
-						max = _deltaTime[i];
+						maxDeltaTime = _deltaTime[i];
+					}
+
+					if (minDeltaTime > _deltaTime[i])
+					{
+						minDeltaTime = _deltaTime[i];
 					}
 				}
-
 				struct tm t;
 				time_t timer;
 				_time64(&timer);
 
 				localtime_s(&t, &timer);
 
-				printf("[%d:%d:%d] | MIN FRAME : %d \n",t.tm_hour,t.tm_min,t.tm_sec, 1000/max);
-				_deltaTime.clear();
+				printf("[%d : %d : %d] MIN_FRAME : %d | MAX_FRAME : %d \n", t.tm_hour, t.tm_min, t.tm_sec, 1000 / maxDeltaTime, 1000 / minDeltaTime);
 			}
 		}
-		
 	private:
-		GameServer* _gameServer;
-		DWORD _NextTick;
-
+		DWORD _PrevTick;
 		DWORD _FrameOutPutTime;
-		DWORD _PureTime;
 		std::vector<DWORD> _deltaTime;
 	};
 }
