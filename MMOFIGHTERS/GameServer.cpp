@@ -148,22 +148,22 @@ void GameServer::OnRecvProc(SerializeBuffer* message, const char msgType, SESSIO
 	//Header 제외하고 payload 넘겨주자
 	switch (msgType)
 	{
-	case static_cast<int>(MESSAGE_DEFINE::REQ_MOVE_START):
+	case static_cast<char>(MESSAGE_DEFINE::REQ_MOVE_START):
 		ReqMoveStartProc(message, key);
 		break;
-	case static_cast<int>(MESSAGE_DEFINE::REQ_MOVE_STOP):
+	case static_cast<char>(MESSAGE_DEFINE::REQ_MOVE_STOP):
 		ReqMoveStopProc(message, key);
 		break;
-	case static_cast<int>(MESSAGE_DEFINE::REQ_ATTACK_LEFT_HAND):
+	case static_cast<char>(MESSAGE_DEFINE::REQ_ATTACK_LEFT_HAND):
 		ReqAttackLeftHandProc(message, key);
 		break;
-	case static_cast<int>(MESSAGE_DEFINE::REQ_ATTACK_RIGHT_HAND):
+	case static_cast<char>(MESSAGE_DEFINE::REQ_ATTACK_RIGHT_HAND):
 		ReqAttackRightHandProc(message, key);
 		break;
-	case static_cast<int>(MESSAGE_DEFINE::REQ_ATTACK_KICK):
+	case static_cast<char>(MESSAGE_DEFINE::REQ_ATTACK_KICK):
 		ReqAttackKickProc(message, key);
 		break;
-	case static_cast<int>(MESSAGE_DEFINE::REQ_ECHO):
+	case static_cast<char>(MESSAGE_DEFINE::REQ_ECHO):
 		ReqEcho(message, key);
 		break;
 	default:
@@ -297,7 +297,7 @@ void GameServer::update()
 			break;
 		}
 
-		if (cur->GetSector() == cur->GetPrevSector())
+		if (cur->IsMoveSector() == false)
 		{
 			continue;
 		}
@@ -306,10 +306,10 @@ void GameServer::update()
 		_pSector->enrollPlayer(cur->GetSector(), cur);
 #ifdef GAME_DEBUG
 		printf("prevSector : (%d, %d) |  curSector : (%d, %d)  | (%d,%d)  ->  (%d, %d) \n", 
-			cur->GetSector().x, cur->GetSector().y, 
 			cur->GetPrevSector().x, cur->GetPrevSector().y,
 			cur->GetSector().x, cur->GetSector().y,
-			cur->GetPrevSector().x, cur->GetPrevSector().y
+			cur->GetPrevSector().x, cur->GetPrevSector().y,
+			cur->GetSector().x, cur->GetSector().y
 		);
 #endif
 		//새로운 섹터를 기반으로 Message처리
@@ -340,6 +340,8 @@ void GameServer::update()
 
 void Core::GameServer::fixedUpdate()
 {
+	update();
+
 	DWORD deltaTime = _FrameManager->CalculateTimeInterval();
 	if (deltaTime < TIME_PER_FRAME)
 	{
@@ -693,7 +695,11 @@ void GameServer::ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key
 	//받은거 그대로 돌려주기.
 	int time;
 	*message >> time;
-
+#ifdef GAME_DEBUG
+	printf("=================================================\n");
+	printf("SERVER ECHO RECEIVED!!\n");
+	printf("=================================================\n");
+#endif 
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
 	buildMsg_Echo(static_cast<char>(MESSAGE_DEFINE::RES_ECHO), time, sBuffer);
 	SendUniCast(key, sBuffer, sBuffer->getUsedSize());

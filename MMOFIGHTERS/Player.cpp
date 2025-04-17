@@ -51,10 +51,16 @@ void Player::Move(const short x, const short y)
 		_PrevSectorPos = _CurSectorPos;
 		_CurSectorPos.x = (_X + x) / SECTOR_WIDTH;
 		_CurSectorPos.y = (_Y + y) / SECTOR_HEIGHT;
+		_X += x;
+		_Y += y;
+		_IsMoveSector = true;
 	}
-
-	_X += x;
-	_Y += y;
+	else
+	{
+		_X += x;
+		_Y += y;
+		_IsMoveSector = false;
+	}
 	return;
 }
 

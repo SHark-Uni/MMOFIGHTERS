@@ -112,7 +112,10 @@ namespace Core
 		{
 			return _LastTime;
 		}
-
+		inline bool IsMoveSector() const
+		{
+			return _IsMoveSector;
+		}
 	private:
 		int _PlayerId;
 		int _SessionId;
@@ -123,6 +126,7 @@ namespace Core
 		int _Action;
 		char _Direction;
 		bool _IsAlive;
+		bool _IsMoveSector;
 
 		short _X;
 		short _Y;
