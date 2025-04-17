@@ -27,12 +27,14 @@ void Player::Init(const int playerId, const int sessionId)
 
 int Player::generateSpawnY() const
 {
-	return (rand() % (RANGE_MOVE_BOTTOM - RANGE_MOVE_TOP) + RANGE_MOVE_TOP);
+	//return (rand() % (RANGE_MOVE_BOTTOM - RANGE_MOVE_TOP) + RANGE_MOVE_TOP);
+	return 130;
 }
 
 int Player::generateSpawnX() const
 {
-	return (rand() % (RANGE_MOVE_RIGHT - RANGE_MOVE_LEFT) + RANGE_MOVE_LEFT);
+	//return (rand() % (RANGE_MOVE_RIGHT - RANGE_MOVE_LEFT) + RANGE_MOVE_LEFT);
+	return 400;
 }
 void Player::Move(const short x, const short y)
 {
@@ -45,12 +47,13 @@ void Player::Move(const short x, const short y)
 		return;
 	}
 	
+	SECTOR_POS nextPos = { (_X + x) / SECTOR_WIDTH, (_Y + y) / SECTOR_WIDTH };
 	//섹터 변화가 있다면 Update 
-	if (CheckUpdateSector(_CurSectorPos.x, _CurSectorPos.y, (_X + x) / SECTOR_WIDTH, (_Y + y) / SECTOR_HEIGHT))
+	if (CheckUpdateSector(_CurSectorPos.x, _CurSectorPos.y, nextPos.x, nextPos.y) == true)
 	{
 		_PrevSectorPos = _CurSectorPos;
-		_CurSectorPos.x = (_X + x) / SECTOR_WIDTH;
-		_CurSectorPos.y = (_Y + y) / SECTOR_HEIGHT;
+		_CurSectorPos = nextPos;
+
 		_X += x;
 		_Y += y;
 		_IsMoveSector = true;

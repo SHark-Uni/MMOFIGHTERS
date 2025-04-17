@@ -47,9 +47,9 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 
 	newPlayer = _PlayerPool->allocate();
 	playerKey = newPlayer->generatePlayerId();
-	_pSector->enrollPlayer(newPlayer->GetSector(), newPlayer);
 
 	newPlayer->Init(playerKey, key);
+	_pSector->enrollPlayer(newPlayer->GetSector(), newPlayer);
 	newPlayer->SetTimeOut(::timeGetTime());
 	
 	_keys.insert({ key, playerKey });
@@ -267,6 +267,10 @@ void GameServer::update()
 		int prevY = cur->GetY();
 #endif
 		int action = cur->GetAction();
+		if (action != PLAYER_NO_ACTION)
+		{
+			cur->SetTimeOut(::timeGetTime());
+		}
 		switch (action)
 		{
 		case static_cast<int>(MOVE_DIRECTION::LEFT):

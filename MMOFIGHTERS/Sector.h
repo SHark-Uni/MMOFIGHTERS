@@ -189,7 +189,6 @@ namespace Core
 			}
 			add_sector._Count = cnt;
 		}
-		
 private:
 		friend class GameServer;
 		std::list<Player*> _Sector[Common::SECTOR_MAX_ROW][Common::SECTOR_MAX_COLUMN];

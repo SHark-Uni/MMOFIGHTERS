@@ -42,4 +42,5 @@ namespace Common
 	constexpr int CHARACTER_DIRECTION_RIGHT = 4;
 
 	constexpr int PLAYER_TIMEOUT = 30000;
+	constexpr int PLAYER_NO_ACTION = -1;
 }

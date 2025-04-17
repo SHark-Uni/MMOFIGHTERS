@@ -76,9 +76,9 @@ namespace Core
 			return _Y;
 		}
 
-		inline bool CheckUpdateSector(int curX, int curY, int prevX, int prevY)
+		inline bool CheckUpdateSector(int curX, int curY, int nextX, int nextY)
 		{
-			if (curX == prevX && curY == prevY)
+			if (curX == nextX && curY == nextY)
 			{
 				return false;
 			}
