@@ -701,6 +701,8 @@ void GameServer::ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key
 	printf("=================================================\n");
 #endif 
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+
 	buildMsg_Echo(static_cast<char>(MESSAGE_DEFINE::RES_ECHO), time, sBuffer);
 	SendUniCast(key, sBuffer, sBuffer->getUsedSize());
 	_SbufferPool->deAllocate(sBuffer);
