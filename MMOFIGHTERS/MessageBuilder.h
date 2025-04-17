@@ -17,7 +17,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, type, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp));
+		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp), type);
 		return;
 	}
 	inline void buildMsg_createOtherCharacter(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, _BYTE hp, Common::SerializeBuffer* message)
@@ -30,7 +30,7 @@ namespace Core
 			DebugBreak();
 		}
 
-		message->setHeader(SIGNITURE, type, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp));
+		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp), type);
 		return;
 	}
 	inline void buildMsg_deleteCharacter(_BYTE type, int id, Common::SerializeBuffer* message)
@@ -42,7 +42,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, type, sizeof(id));
+		message->setHeader(SIGNITURE, sizeof(id), type);
 		return;
 	}
 
@@ -55,7 +55,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, type, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y), type);
 		return;
 	}
 
@@ -69,7 +69,7 @@ namespace Core
 			DebugBreak();
 		}
 
-		message->setHeader(SIGNITURE, type, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setHeader(SIGNITURE,  sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y), type);
 		return;
 	}
 
@@ -82,7 +82,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, type, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y), type);
 		return;
 	}
 
@@ -95,7 +95,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, type, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y), type);
 		return;
 	}
 
@@ -108,7 +108,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, type, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y));
+		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y), type);
 		return;
 	}
 
@@ -122,7 +122,7 @@ namespace Core
 			DebugBreak();
 		}
 
-		message->setHeader(SIGNITURE, type, sizeof(attackId) + sizeof(targetId) + sizeof(targetHp));
+		message->setHeader(SIGNITURE, sizeof(attackId) + sizeof(targetId) + sizeof(targetHp), type);
 		return;
 	}
 
@@ -134,7 +134,7 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, type, sizeof(playerId) + sizeof(x) + sizeof(y));
+		message->setHeader(SIGNITURE, sizeof(playerId) + sizeof(x) + sizeof(y), type);
 		return;
 	}
 
@@ -146,6 +146,6 @@ namespace Core
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, type, sizeof(time));
+		message->setHeader(SIGNITURE, sizeof(time), type);
 	}
 }

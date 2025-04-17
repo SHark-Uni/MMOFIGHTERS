@@ -46,7 +46,7 @@ void Player::Move(const short x, const short y)
 	}
 	
 	//섹터 변화가 있다면 Update 
-	if (CheckUpdateSector(_CurSectorPos.x, _CurSectorPos.y, (_X + x) / SECTOR_WIDTH, (_Y + y) / SECTOR_HEIGHT) == true)
+	if (CheckUpdateSector(_CurSectorPos.x, _CurSectorPos.y, (_X + x) / SECTOR_WIDTH, (_Y + y) / SECTOR_HEIGHT))
 	{
 		_PrevSectorPos = _CurSectorPos;
 		_CurSectorPos.x = (_X + x) / SECTOR_WIDTH;

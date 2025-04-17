@@ -9,6 +9,7 @@ namespace Core
 {
 	constexpr int FRAME = 50;
 	constexpr int TIME_PER_FRAME = 1000 / FRAME;
+	constexpr int FRAME_LOG_TIME = 10000;
 	class FrameManager
 	{
 	public:
@@ -49,7 +50,7 @@ namespace Core
 		inline void DisplayFrameInfo()
 		{
 			DWORD curTime = ::timeGetTime();
-			if (curTime - _FrameOutPutTime >= 1000)
+			if (curTime - _FrameOutPutTime >= FRAME_LOG_TIME)
 			{
 				_FrameOutPutTime = curTime;
 				struct tm t;

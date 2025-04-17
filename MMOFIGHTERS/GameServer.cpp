@@ -42,18 +42,32 @@ void GameServer::registFrameManager(FrameManager* frameManager)
 void GameServer::OnAcceptProc(const SESSION_KEY key)
 {
 	int playerKey;
+	Player* newPlayer;
+	
 
-	Player* newPlayer = _PlayerPool->allocate();
+	newPlayer = _PlayerPool->allocate();
 	playerKey = newPlayer->generatePlayerId();
+	_pSector->enrollPlayer(newPlayer->GetSector(), newPlayer);
 
 	newPlayer->Init(playerKey, key);
 	newPlayer->SetTimeOut(::timeGetTime());
+	
 	_keys.insert({ key, playerKey });
 	_Players.insert({ playerKey, newPlayer });
-
+#ifdef GAME_DEBUG
+	SECTOR_POS pos = newPlayer->GetSector();
+	printf("========================\n");
+	printf("RESPAWN PLAYER\n");
+	printf("PLAYER X : %d | PLAYER Y : %d | PLAYER_SECTOR_X : %d | PLAYER_SECTOR_Y : %d \n",
+			newPlayer->GetX(),
+			newPlayer->GetY(),
+			pos.x,
+			pos.y
+		);
+	printf("========================\n");
+#endif 
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
 	sBuffer->clear();
-
 	//1. 내 캐릭터 생성 메시지 전송 (섹터)
 	buildMsg_createMyCharacter(
 		static_cast<int>(MESSAGE_DEFINE::RES_CREATE_MY_CHARACTER),
@@ -213,6 +227,7 @@ void GameServer::cleanUpPlayer()
 			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), key, sBuffer);
 			SendToSector(sBuffer, cur);
 
+			_pSector->dropOutPlayer(cur->GetSector(), cur);
 			_keys.erase(cur->GetSessionId());
 			_PlayerPool->deAllocate(cur);
 			iter = _Players.erase(iter);

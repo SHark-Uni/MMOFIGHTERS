@@ -56,8 +56,8 @@ namespace Common
 	typedef struct MESSAGE_HEADER
 	{
 		_BYTE _Code;
-		_BYTE _PayloadLen;
 		_BYTE _MessageType;
+		_BYTE _PayloadLen;
 	}header_t;
 #pragma pack(pop)
 
