@@ -62,7 +62,6 @@ void Player::Move(const short x, const short y)
 	{
 		_X += x;
 		_Y += y;
-		_IsMoveSector = false;
 	}
 	return;
 }

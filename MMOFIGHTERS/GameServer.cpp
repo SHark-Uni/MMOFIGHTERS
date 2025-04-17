@@ -47,8 +47,8 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 
 	newPlayer = _PlayerPool->allocate();
 	playerKey = newPlayer->generatePlayerId();
-
 	newPlayer->Init(playerKey, key);
+
 	_pSector->enrollPlayer(newPlayer->GetSector(), newPlayer);
 	newPlayer->SetTimeOut(::timeGetTime());
 	
@@ -325,7 +325,7 @@ void GameServer::update()
 
 		SendDeleteMessage_DeletedSector(cur, sBuffer, deleteArea);
 		SendCreateMessage_AddSector(cur, sBuffer, addArea);
-
+		cur->MoveSectorIsDone();
 		_SbufferPool->deAllocate(sBuffer);
 
 #ifdef GAME_DEBUG

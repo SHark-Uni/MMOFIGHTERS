@@ -116,6 +116,11 @@ namespace Core
 		{
 			return _IsMoveSector;
 		}
+
+		inline void MoveSectorIsDone()
+		{
+			_IsMoveSector = false;
+		}
 	private:
 		int _PlayerId;
 		int _SessionId;
