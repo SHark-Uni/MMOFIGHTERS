@@ -41,5 +41,5 @@ namespace Common
 	constexpr int CHARACTER_DIRECTION_LEFT = 0;
 	constexpr int CHARACTER_DIRECTION_RIGHT = 4;
 
-	constexpr int MESSAGE_RECEIEVE_TIMEOUT = 30000;
+	constexpr int PLAYER_TIMEOUT = 30000;
 }

@@ -76,15 +76,13 @@ namespace Core
 			return _Y;
 		}
 
-		inline void UpdateSector(int curX, int curY, int prevX, int prevY)
+		inline bool CheckUpdateSector(int curX, int curY, int prevX, int prevY)
 		{
 			if (curX == prevX && curY == prevY)
 			{
-				return;
+				return false;
 			}
-			_PrevSectorPos = _CurSectorPos;
-			_CurSectorPos.x = curX;
-			_CurSectorPos.y = curY;
+			return true;
 		}
 
 		inline void SetSector(SECTOR_POS sector)
@@ -103,6 +101,16 @@ namespace Core
 		inline SECTOR_POS GetPrevSector() const
 		{
 			return _PrevSectorPos;
+		}
+
+		inline void SetTimeOut(unsigned long time)
+		{
+			_LastTime = time;
+		}
+
+		inline unsigned long GetTimeOut()
+		{
+			return _LastTime;
 		}
 
 	private:

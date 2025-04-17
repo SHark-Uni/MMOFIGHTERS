@@ -91,7 +91,7 @@ eERROR_MESSAGE NetWorkLib::Init()
 		return eERROR_MESSAGE::SET_LISTEN_FAIL;
 	}
 
-	_Sessions.reserve(6000);
+	_Sessions.reserve(SESSION_RESERVE_SIZE);
 	return eERROR_MESSAGE::SUCCESS;
 }
 

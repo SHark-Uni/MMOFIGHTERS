@@ -1,5 +1,7 @@
 #pragma once
 
+#define GAME_DEBUG (1)
+
 #include "NetLib.h"
 #include "Player.h"
 #include "Sector.h"
@@ -8,8 +10,8 @@
 
 namespace Core
 {
-	constexpr int PLAYER_POOL_SIZE = 6000;
-	constexpr int PLAYER_RESERVER_SIZE = 6000;
+	constexpr int PLAYER_POOL_SIZE = 8000;
+	constexpr int PLAYER_RESERVER_SIZE = 8000;
 
 	class Player;
 	class GameServer : public NetLib::NetWorkLib

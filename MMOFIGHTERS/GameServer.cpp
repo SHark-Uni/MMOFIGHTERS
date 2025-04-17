@@ -47,6 +47,7 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 	playerKey = newPlayer->generatePlayerId();
 
 	newPlayer->Init(playerKey, key);
+	newPlayer->SetTimeOut(::timeGetTime());
 	_keys.insert({ key, playerKey });
 	_Players.insert({ playerKey, newPlayer });
 
@@ -210,7 +211,7 @@ void GameServer::cleanUpPlayer()
 		{
 			sBuffer->clear();
 			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), key, sBuffer);
-			SendBroadCast(cur->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+			SendToSector(sBuffer, cur);
 
 			_keys.erase(cur->GetSessionId());
 			_PlayerPool->deAllocate(cur);
@@ -236,6 +237,15 @@ void GameServer::update()
 			OnDestroyProc(cur->GetSessionId());
 			continue;
 		}
+		if (::timeGetTime() - cur->GetTimeOut() >= PLAYER_TIMEOUT)
+		{
+#ifdef GAME_DEBUG
+			printf("PLAYER TIMEOUT DISCONNECT!\n");
+#endif	
+			OnDestroyProc(cur->GetSessionId());
+			continue;
+		}
+
 #ifdef GAME_DEBUG
 		//FOR DEBUG
 		int prevX = cur->GetX();
@@ -279,7 +289,14 @@ void GameServer::update()
 		//섹터 이동해줘야함. 이전 섹터에서 빼주고, 현재 섹터에 등록
 		_pSector->dropOutPlayer(cur->GetPrevSector(), cur);
 		_pSector->enrollPlayer(cur->GetSector(), cur);
-
+#ifdef GAME_DEBUG
+		printf("prevSector : (%d, %d) |  curSector : (%d, %d)  | (%d,%d)  ->  (%d, %d) \n", 
+			cur->GetSector().x, cur->GetSector().y, 
+			cur->GetPrevSector().x, cur->GetPrevSector().y,
+			cur->GetSector().x, cur->GetSector().y,
+			cur->GetPrevSector().x, cur->GetPrevSector().y
+		);
+#endif
 		//새로운 섹터를 기반으로 Message처리
 		SECTOR_SURROUND deleteArea;
 		SECTOR_SURROUND addArea;
@@ -358,6 +375,7 @@ void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY ke
 	//내 캐릭터 정보 찾기
 	int playerKey = _keys.find(key)->second;
 	Player* player = _Players.find(playerKey)->second;
+	player->SetTimeOut(::timeGetTime());
 	player->SetAction(action);
 	//방향설정
 	switch (action)
@@ -418,6 +436,7 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 	//내 캐릭터 정보 찾기
 	int playerKey = _keys.find(key)->second;
 	Player* player = _Players.find(playerKey)->second;
+	player->SetTimeOut(::timeGetTime());
 
 	short playerX = player->GetX();
 	short playerY = player->GetY();
@@ -488,6 +507,7 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 	unsigned short recvX;
 	unsigned short recvY;
 	*message >> attackDir >> recvX >> recvY;
+
 	if (message->checkFailBit() == true)
 	{
 		//읽기 실패. 직렬화 버퍼 순서 잘못한거임. 혹은, 메시지 크기가 협의되지 않은상태로 들어옴.
@@ -501,6 +521,7 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 	 
 	int playerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(playerKey)->second;
+	attacker->SetTimeOut(::timeGetTime());
 	Player* target = nullptr;
 
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
@@ -560,6 +581,8 @@ void GameServer::ReqAttackRightHandProc(SerializeBuffer* message, const SESSION_
 	int playerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(playerKey)->second;
 	Player* target = nullptr;
+	attacker->SetTimeOut(::timeGetTime());
+
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
 
 	char attackerDirection = attacker->GetDirection();
@@ -618,6 +641,8 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 	int playerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(playerKey)->second;
 	Player* target = nullptr;
+	attacker->SetTimeOut(::timeGetTime());
+
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
 	char attackerDirection = attacker->GetDirection();
 
