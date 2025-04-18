@@ -38,8 +38,12 @@ namespace Core
 		void ReqAttackKickProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key);
 		//* 반복되는 코드 모듈로 뺌. 컨텐츠 코드 긴함. *//
-		void SendDeleteMessage_DeletedSector(const Player* player, Common::SerializeBuffer* sBuffer, const SECTOR_SURROUND& deleteSector);
-		void SendCreateMessage_AddSector(const Player* player, Common::SerializeBuffer* sBuffer, const SECTOR_SURROUND& addSector);
+		void SendDeleteSectorProc(const Player* player,  const SECTOR_SURROUND& deleteSector);
+		void SendAddSectorProc(const Player* player, const SECTOR_SURROUND& addSector);
+
+		void SendCreateMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType);
+		void SendMoveStartMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType);
+
 		void CheckAttackSucess(const Player* attacker, Player*& target, const int AttackRangeX, const int AttackRangeY, const SECTOR_SURROUND& attackRangeSector);
 		bool CheckAttackInRange(const short attackerX, const short attackerY, const int AttackRangeX, const int AttackRangeY, const short targetX, const short targetY, const char direction);
 		bool CheckDirection(char direction);
@@ -47,7 +51,6 @@ namespace Core
 		void cleanUpPlayer();
 		//프레임 로직 
 		void update();
-
 		void fixedUpdate();
 	private:
 		std::unordered_map<SESSION_KEY, PLAYER_KEY> _keys;

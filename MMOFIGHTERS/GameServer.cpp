@@ -309,11 +309,11 @@ void GameServer::update()
 		_pSector->dropOutPlayer(cur->GetPrevSector(), cur);
 		_pSector->enrollPlayer(cur->GetSector(), cur);
 #ifdef GAME_DEBUG
-		printf("prevSector : (%d, %d) |  curSector : (%d, %d)  | (%d,%d)  ->  (%d, %d) \n", 
-			cur->GetPrevSector().x, cur->GetPrevSector().y,
-			cur->GetSector().x, cur->GetSector().y,
-			cur->GetPrevSector().x, cur->GetPrevSector().y,
-			cur->GetSector().x, cur->GetSector().y
+		printf("prevSector : (%d, %d) |  curSector : (%d, %d)| (%d,%d)  ->  (%d, %d) \n", 
+			cur->GetPrevSector().y, cur->GetPrevSector().x,
+			cur->GetSector().y, cur->GetSector().x,
+			cur->GetPrevSector().y, cur->GetPrevSector().x,
+			cur->GetSector().y, cur->GetSector().x
 		);
 #endif
 		//새로운 섹터를 기반으로 Message처리
@@ -321,13 +321,10 @@ void GameServer::update()
 		SECTOR_SURROUND addArea;
 		_pSector->getUpdateSurroundSector(cur->GetPrevSector(), cur->GetSector(), deleteArea, addArea);
 
-		SerializeBuffer* sBuffer = _SbufferPool->allocate();
-
-		SendDeleteMessage_DeletedSector(cur, sBuffer, deleteArea);
-		SendCreateMessage_AddSector(cur, sBuffer, addArea);
+		SendDeleteSectorProc(cur, deleteArea);
+		SendAddSectorProc(cur, addArea);
+		
 		cur->MoveSectorIsDone();
-		_SbufferPool->deAllocate(sBuffer);
-
 #ifdef GAME_DEBUG
 		int nextX = cur->GetX();
 		int nextY = cur->GetY();
@@ -506,8 +503,8 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 		player->SetSector(fixedSector);
 		
 		//섹터변화에 맞게 네트워크 송수신이 일어나야함. 
-		SendDeleteMessage_DeletedSector(player, sBuffer, deleteArea);
-		SendCreateMessage_AddSector(player, sBuffer, addArea);
+		SendDeleteSectorProc(player, deleteArea);
+		SendAddSectorProc(player, addArea);
 	}
 #ifdef GAME_DEBUG
 	printf("MOVE STOP MESSAGE\n");
@@ -712,10 +709,11 @@ void GameServer::ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key
 	_SbufferPool->deAllocate(sBuffer);
 }
 
-void GameServer::SendDeleteMessage_DeletedSector(const Player* player, Common::SerializeBuffer* sBuffer, const SECTOR_SURROUND& deleteSector)
+void GameServer::SendDeleteSectorProc(const Player* player, const SECTOR_SURROUND& deleteSector)
 {
 	int targetX;
 	int targetY;
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
 	for (int i = 0; i < deleteSector._Count; i++)
 	{
 		targetX = deleteSector._Surround[i].x;
@@ -734,12 +732,15 @@ void GameServer::SendDeleteMessage_DeletedSector(const Player* player, Common::S
 			SendUniCast(player->GetSessionId(), sBuffer, sBuffer->getUsedSize());
 		}
 	}
+
+	_SbufferPool->deAllocate(sBuffer);
 }
 
-void GameServer::SendCreateMessage_AddSector(const Player* player, Common::SerializeBuffer* sBuffer, const SECTOR_SURROUND& addSector)
+void GameServer::SendAddSectorProc(const Player* player, const SECTOR_SURROUND& addSector)
 {
 	int targetX;
 	int targetY;
+	
 	for (int i = 0; i < addSector._Count; i++)
 	{
 		targetX = addSector._Surround[i].x;
@@ -748,33 +749,57 @@ void GameServer::SendCreateMessage_AddSector(const Player* player, Common::Seria
 		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
 		{
 			// add 구간에 있는 캐릭터들에게 내 캐릭터 생성 메시지 전송 (OtherChracter Message)
-			sBuffer->clear();
-			buildMsg_createOtherCharacter(
-				static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER),
-				player->GetPlayerId(),
-				player->GetDirection(),
-				player->GetX(),
-				player->GetY(),
-				player->GetHp(),
-				sBuffer
-			);
-			SendUniCast(OtherPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+			SendCreateMessageToAddSector(player, OtherPlayer, static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER));
+			SendMoveStartMessageToAddSector(player, OtherPlayer, static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START));
 
 			// 나에게 add구간에 있는 캐릭터들 캐릭터 생성 메시지 전송 (OtherChracter Message)
-			sBuffer->clear();
-			buildMsg_createOtherCharacter(
-				static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER),
-				OtherPlayer->GetPlayerId(),
-				OtherPlayer->GetDirection(),
-				OtherPlayer->GetX(),
-				OtherPlayer->GetY(),
-				OtherPlayer->GetHp(),
-				sBuffer
-			);
-			SendUniCast(player->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+			SendCreateMessageToAddSector(OtherPlayer, player, static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER));
+			//움직이고 있는 캐릭이 있다면, 나에게 움직이라는 메시지 전송
+			if (OtherPlayer->GetAction() != PLAYER_NO_ACTION)
+			{
+				SendMoveStartMessageToAddSector(OtherPlayer, player, static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START));
+			}
 		}
 	}
+	
 }
+
+
+
+void GameServer::SendCreateMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+	buildMsg_createOtherCharacter(
+		msgType,
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetDirection(),
+		sendPlayer->GetX(),
+		sendPlayer->GetY(),
+		sendPlayer->GetHp(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::SendMoveStartMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+	buildMsg_move_start(
+		msgType,
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetAction(),
+		sendPlayer->GetX(),
+		sendPlayer->GetY(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+
 
 void GameServer::CheckAttackSucess(const Player* attacker, Player*& target, const int AttackRangeX, const int AttackRangeY, const SECTOR_SURROUND& attackRangeSector)
 {
