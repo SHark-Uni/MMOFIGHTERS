@@ -37,22 +37,32 @@ int CircularQueue::Enqueue(const char* pMessage, int size)
 		int rSize = _Capacity - _Rear + 1;
 		int fSize = _Front - 1;
 
-		//FRONT가 0이면 애초에 쪼개서 넣을 수가 없지않나 
+		//앞이 꽉차있는경우 맨 뒤는 한칸 비워줘야함.
 		if (fSize < 0)
 		{
 			--rSize;
+			fSize = 0;
 		}
+
+		// 쪼개서라도 넣지 못하는 경우, 최대한 쪼개서 넣어줌.
+		if (size > fSize + rSize)
+		{
+			memcpy(_pBuffer + _Rear, pMessage, rSize);
+			memcpy(_pBuffer, pMessage + rSize, fSize);
+			return fSize + rSize;
+		}
+
+		//넣을 수 있는 경우
+		//뒷 공간에 넣을 수 있는 경우
 		if (size <= rSize)
 		{
 			memcpy(_pBuffer + _Rear, pMessage, size);
 			_Rear = (_Rear + size) % (_Capacity + 1);
 			return size;
 		}
-		//쪼개서 넣어야 하는 경우
-		if (size < fSize + rSize)
-		{
-			fSize = size - rSize;
-		}
+
+		//쪼개서 넣어야 하는데, 넣을 수 있는 경우 
+		fSize = size - rSize;
 		memcpy(_pBuffer + _Rear, pMessage, rSize);
 		memcpy(_pBuffer, pMessage + rSize, fSize);
 		_Rear = (_Rear + (fSize + rSize)) % (_Capacity + 1);

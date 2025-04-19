@@ -43,14 +43,14 @@ namespace Core
 			for (int i = 0; i < Common::SECTOR_COLUMN_SIZE; i++)
 			{
 				nx = sector_x + dx[i];
-				if (nx < 0 || nx > Common::SECTOR_MAX_COLUMN)
+				if (nx < 0 || nx >= Common::SECTOR_MAX_COLUMN)
 				{
 					continue;
 				}
 				for (int j = 0; j < Common::SECTOR_ROW_SIZE; j++)
 				{
 					ny = sector_y + dy[j];
-					if (ny < 0 || ny > Common::SECTOR_MAX_ROW)
+					if (ny < 0 || ny >= Common::SECTOR_MAX_ROW)
 					{
 						continue;
 					}

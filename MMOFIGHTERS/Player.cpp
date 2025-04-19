@@ -27,14 +27,14 @@ void Player::Init(const int playerId, const int sessionId)
 
 int Player::generateSpawnY() const
 {
-	//return (rand() % (RANGE_MOVE_BOTTOM - RANGE_MOVE_TOP) + RANGE_MOVE_TOP);
-	return 130;
+	return (rand() % (RANGE_MOVE_BOTTOM - RANGE_MOVE_TOP) + RANGE_MOVE_TOP);
+	//return 400;
 }
 
 int Player::generateSpawnX() const
 {
-	//return (rand() % (RANGE_MOVE_RIGHT - RANGE_MOVE_LEFT) + RANGE_MOVE_LEFT);
-	return 400;
+	return (rand() % (RANGE_MOVE_RIGHT - RANGE_MOVE_LEFT) + RANGE_MOVE_LEFT);
+	//return 150;
 }
 void Player::Move(const short x, const short y)
 {
@@ -81,9 +81,9 @@ void Player::Attacked(const int damage)
 bool Core::Player::CheckWallCollision(const int x, const int y)
 {
 	if (x < static_cast<short>(RANGE_MOVE_LEFT)
-		|| x > static_cast<short>(RANGE_MOVE_RIGHT)
+		|| x >= static_cast<short>(RANGE_MOVE_RIGHT)
 		|| y < static_cast<short>(RANGE_MOVE_TOP)
-		|| y > static_cast<short>(RANGE_MOVE_BOTTOM))
+		|| y >= static_cast<short>(RANGE_MOVE_BOTTOM))
 	{
 		return true;
 	}

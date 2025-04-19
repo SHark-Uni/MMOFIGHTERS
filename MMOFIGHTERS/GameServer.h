@@ -1,7 +1,5 @@
 #pragma once
 
-#define GAME_DEBUG (1)
-
 #include "NetLib.h"
 #include "Player.h"
 #include "Sector.h"
