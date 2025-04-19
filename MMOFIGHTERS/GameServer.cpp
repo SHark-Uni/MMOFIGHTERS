@@ -351,14 +351,15 @@ void Core::GameServer::fixedUpdate()
 	else
 	{
 		_DelayedTime += (deltaTime - TIME_PER_FRAME);
-
 		if (_DelayedTime >= TIME_PER_FRAME)
 		{
-			for (int i = 0; i < _DelayedTime / TIME_PER_FRAME; i++)
+			printf("FIXED UPDATE IS EXECUTE FOR %d TIMES \n", (_DelayedTime / TIME_PER_FRAME));
+			for (int i = 0; i < (_DelayedTime / TIME_PER_FRAME); i++)
 			{
 				update(); 
 			}
 			_DelayedTime %= TIME_PER_FRAME;
+			_FrameManager->AddElaspedTime_pastFrame(_DelayedTime / TIME_PER_FRAME);
 		}
 	}
 	_FrameManager->DisplayFrameInfo();

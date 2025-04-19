@@ -18,14 +18,14 @@ void Logger::Logging(int errorCode, int line, const WCHAR* cause)
 	WCHAR FILENAME[fileNameLength] = { 0 , };
 	WCHAR* ErrorMessage = new WCHAR[errorMsgLen];
 
-	swprintf_s(FILENAME, fileNameLength, L"Logger_%dy_%dm_%d day_%dh%dm.txt",
+	swprintf_s(FILENAME, fileNameLength, L"Logger_%dy_%dm_%d day_%dh%.txt",
 		t.tm_year + 1900,
 		t.tm_mon + 1,
 		t.tm_wday,
-		t.tm_hour,
-		t.tm_min);
+		t.tm_hour
+		);
 
-	_wfopen_s(&fp, FILENAME, L"wb");
+	_wfopen_s(&fp, FILENAME, L"ab");
 	if (fp == NULL)
 	{
 		return;

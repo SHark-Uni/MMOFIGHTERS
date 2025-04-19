@@ -15,8 +15,8 @@ namespace Core
 
 	enum class PLAYER_MOVE_SPEED
 	{
-		X_SPEED = 3,
-		Y_SPEED = 2,
+		X_SPEED = 6,
+		Y_SPEED = 4,
 	};
 
 	enum class PLAYER_DEFAULT

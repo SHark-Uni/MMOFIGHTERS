@@ -7,7 +7,7 @@
 
 namespace Core
 {
-	constexpr int FRAME = 50;
+	constexpr int FRAME = 25;
 	constexpr int TIME_PER_FRAME = 1000 / FRAME;
 	constexpr int FRAME_LOG_TIME = 10000;
 	class FrameManager
@@ -24,12 +24,14 @@ namespace Core
 		{
 			return _PrevTick;
 		}
-
 		inline void SetTimer(DWORD prevtick)
 		{
 			_PrevTick = prevtick;
 		}
-
+		inline void AddElaspedTime_pastFrame(int pastFrameCnt)
+		{
+			_PrevTick += TIME_PER_FRAME * pastFrameCnt;
+		}
 		inline DWORD CalculateTimeInterval()
 		{
 			DWORD curTime = ::timeGetTime();
