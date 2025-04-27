@@ -137,24 +137,24 @@ namespace Core
 			getSurroundSector(new_sector.x, new_sector.y, curAround);
 
 			//prev기준으로 겹치지 않는 부분 -> delete sector 
-			bool flag = false;
+			bool IsDuplicated;
 			int cnt = 0;
 			for (int i = 0; i < prevAround._Count; i++)
 			{
+				IsDuplicated = false;
 				for (int j = 0; j < curAround._Count; j++)
 				{
 					//중복되는 부분은 등록 x
 					if (prevAround._Surround[i].x == curAround._Surround[j].x &&
 						prevAround._Surround[i].y == curAround._Surround[j].y)
 					{
-						flag ^= 1;
+						IsDuplicated = true;
 						break;
 					}
 				}
 
-				if (flag)
+				if (IsDuplicated == true)
 				{
-					flag ^= 1;
 					continue;
 				}
 				//flag가 여전히 false인 경우
@@ -165,23 +165,22 @@ namespace Core
 			delete_secotr._Count = cnt;
 
 			//cur기준으로 겹치지 않는 부분 ->addsector
-			flag = false;
 			cnt = 0;
 			for (int i = 0; i < curAround._Count; i++)
 			{
+				IsDuplicated = false;
 				for (int j = 0; j < prevAround._Count; j++)
 				{
 					//같다면, flag 세우고
 					if (curAround._Surround[i].x == prevAround._Surround[j].x &&
 						curAround._Surround[i].y == prevAround._Surround[j].y)
 					{
-						flag ^= 1;
+						IsDuplicated = true;
 						break;
 					}
 				}
-				if (flag)
+				if (IsDuplicated)
 				{
-					flag ^= 1;
 					continue;
 				}
 				add_sector._Surround[cnt].x = curAround._Surround[i].x;
