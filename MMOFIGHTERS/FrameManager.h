@@ -13,6 +13,10 @@ namespace Core
 	class FrameManager
 	{
 	public:
+		inline void InitSector(Sector* sector)
+		{
+			tmp_sector = sector;
+		}
 		inline void InitTimer()
 		{
 			_PrevTick = timeGetTime();
@@ -70,7 +74,15 @@ namespace Core
 				{
 					_MaxDeltaTime = TIME_PER_FRAME;
 				}
-				printf("[%d : %d : %d] MIN_FRAME : %d | MAX_FRAME : %d \n", t.tm_hour, t.tm_min, t.tm_sec, 1000 / _MaxDeltaTime, 1000 / _MinDeltaTime);
+				int sum = 0;
+				for (int i = 0; i < 50; i++)
+				{
+					for (int j = 0; j < 50; j++)
+					{
+						sum += tmp_sector->_Sector[i][j].size();
+					}
+				}
+				printf("[%d : %d : %d] MIN_FRAME : %d | MAX_FRAME : %d | Sector TOTAL : %d \n", t.tm_hour, t.tm_min, t.tm_sec, 1000 / _MaxDeltaTime, 1000 / _MinDeltaTime, sum);
 				_MinDeltaTime = UINT_MAX;
 				_MaxDeltaTime = 0;
 			}
@@ -81,5 +93,6 @@ namespace Core
 
 		DWORD _MaxDeltaTime;
 		DWORD _MinDeltaTime;
+		Sector* tmp_sector;
 	};
 }

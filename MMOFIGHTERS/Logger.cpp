@@ -18,7 +18,7 @@ void Logger::Logging(int errorCode, int line, const WCHAR* cause)
 	WCHAR FILENAME[fileNameLength] = { 0 , };
 	WCHAR* ErrorMessage = new WCHAR[errorMsgLen];
 
-	swprintf_s(FILENAME, fileNameLength, L"Logger_%dy_%dm_%d day_%dh%.txt",
+	swprintf_s(FILENAME, fileNameLength, L"Logger_%dy_%dm_%d day_%dhour.txt",
 		t.tm_year + 1900,
 		t.tm_mon + 1,
 		t.tm_wday,

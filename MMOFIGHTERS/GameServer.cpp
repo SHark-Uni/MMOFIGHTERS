@@ -12,6 +12,7 @@ using namespace NetLib;
 using namespace Core;
 using namespace Common;
 
+
 GameServer::GameServer()
 {
 	_Players.reserve(PLAYER_RESERVER_SIZE);
@@ -186,7 +187,6 @@ void GameServer::OnDestroyProc(const SESSION_KEY key)
 		DebugBreak();
 		return;
 	}
-
 	PLAYER_KEY playerKey = iter->second;
 	const auto& iter2 = _Players.find(playerKey);
 	if (iter2 == _Players.end())

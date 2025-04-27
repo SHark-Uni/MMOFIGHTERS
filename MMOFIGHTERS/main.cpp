@@ -20,8 +20,8 @@ int main()
 	ObjectPool<Session, SESSION_POOL_SIZE, false>* sessionPool = new ObjectPool<Session, SESSION_POOL_SIZE, false>();
 	ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>* sBufferPool = new ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>();
 	FrameManager* frameManager = new FrameManager();
+	
 	Sector* sector = new Sector();
-
 	GameServer* gameServer = new GameServer();
 	gameServer->registSessionPool(sessionPool);
 	gameServer->registPlayerPool(playerPool);
@@ -36,6 +36,7 @@ int main()
 
 	int delayedTime = 0;
 	frameManager->InitTimer();
+	frameManager->InitSector(sector);
 	while (true)
 	{
 		//네트워크

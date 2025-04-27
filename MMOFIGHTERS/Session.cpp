@@ -5,7 +5,7 @@ using namespace NetLib;
 
 Session::Session()
 {
-	_pRecvQueue = new CircularQueue(1024);
+	_pRecvQueue = new CircularQueue(2048);
 	_pSendQueue = new CircularQueue(RINGBUFFER_QUEUE_SIZE);
 }
 

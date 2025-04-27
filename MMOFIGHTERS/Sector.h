@@ -28,6 +28,7 @@ namespace Core
 	
 	class Player;
 	class GameServer;
+	class FrameManager;
 	class Sector
 	{
 	public:
@@ -191,6 +192,7 @@ namespace Core
 		}
 private:
 		friend class GameServer;
+		friend class FrameManager;
 		std::list<Player*> _Sector[Common::SECTOR_MAX_ROW][Common::SECTOR_MAX_COLUMN];
 	};
 }
