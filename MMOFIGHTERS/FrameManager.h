@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <vector>
 #include <time.h>
-
+#include "Sector.h"
 namespace Core
 {
 	constexpr int FRAME = 25;
@@ -93,6 +93,7 @@ namespace Core
 
 		DWORD _MaxDeltaTime;
 		DWORD _MinDeltaTime;
+
 		Sector* tmp_sector;
 	};
 }

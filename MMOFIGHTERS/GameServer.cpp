@@ -225,6 +225,7 @@ void GameServer::cleanUpPlayer()
 		{
 			sBuffer->clear();
 			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), key, sBuffer);
+			printf("CREATE DELETE MESSAGE : %d \n|", key);
 			SendToSector(sBuffer, cur);
 
 			_pSector->dropOutPlayer(cur->GetSector(), cur);
@@ -343,6 +344,7 @@ void Core::GameServer::fixedUpdate()
 {
 	update();
 
+	printAroundSector();
 	DWORD deltaTime = _FrameManager->CalculateTimeInterval();
 	if (deltaTime < TIME_PER_FRAME)
 	{
@@ -765,8 +767,6 @@ void GameServer::SendAddSectorProc(const Player* player, const SECTOR_SURROUND& 
 	
 }
 
-
-
 void GameServer::SendCreateMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType)
 {
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
@@ -799,8 +799,6 @@ void GameServer::SendMoveStartMessageToAddSector(const Player* sendPlayer, const
 	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
 	_SbufferPool->deAllocate(sBuffer);
 }
-
-
 
 void GameServer::CheckAttackSucess(const Player* attacker, Player*& target, const int AttackRangeX, const int AttackRangeY, const SECTOR_SURROUND& attackRangeSector)
 {

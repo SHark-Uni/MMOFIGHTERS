@@ -50,6 +50,31 @@ namespace Core
 		//프레임 로직 
 		void update();
 		void fixedUpdate();
+
+		//DEBUG
+		void printAroundSector()
+		{
+			const auto& ret = _Players.find(0);
+			if (ret != _Players.end())
+			{
+				SECTOR_SURROUND around;
+				Player* target = ret->second;
+				SECTOR_POS curSector = target->GetSector();
+
+				_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
+				for (int i = 0; i < around._Count; i++)
+				{
+					int targetY = around._Surround[i].y;
+					int targetX = around._Surround[i].x;
+
+					for (auto& AroundPlayer : _pSector->_Sector[targetY][targetX])
+					{
+						printf("SECTOR X : %d | SECTOR Y : %d | PLAYER ID : %d \n",targetX, targetY, AroundPlayer->GetPlayerId());
+					}
+				}
+			}
+		}
 	private:
 		std::unordered_map<SESSION_KEY, PLAYER_KEY> _keys;
 		std::unordered_map<PLAYER_KEY, Player*> _Players;
