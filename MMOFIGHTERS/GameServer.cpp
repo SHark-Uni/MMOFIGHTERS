@@ -45,7 +45,6 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 	int playerKey;
 	Player* newPlayer;
 	
-
 	newPlayer = _PlayerPool->allocate();
 	playerKey = newPlayer->generatePlayerId();
 	newPlayer->Init(playerKey, key);
@@ -225,7 +224,6 @@ void GameServer::cleanUpPlayer()
 		{
 			sBuffer->clear();
 			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), key, sBuffer);
-			printf("CREATE DELETE MESSAGE : %d \n|", key);
 			SendToSector(sBuffer, cur);
 
 			_pSector->dropOutPlayer(cur->GetSector(), cur);
@@ -344,7 +342,7 @@ void Core::GameServer::fixedUpdate()
 {
 	update();
 
-	printAroundSector();
+	//printAroundSector();
 	DWORD deltaTime = _FrameManager->CalculateTimeInterval();
 	if (deltaTime < TIME_PER_FRAME)
 	{
@@ -724,11 +722,21 @@ void GameServer::SendDeleteSectorProc(const Player* player, const SECTOR_SURROUN
 
 		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
 		{
+			//추가한것 
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
 			//delete 구간에 있는 캐릭들에게 내 캐릭터 삭제 메시지 전송 
 			sBuffer->clear();
 			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), player->GetPlayerId(), sBuffer);
 			SendUniCast(OtherPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
 
+			//Debug
+			if (OtherPlayer->GetSessionId() == 0)
+			{
+				printf("DELETE MESSAGE TO 0 FROM %d\n", player->GetPlayerId());
+			}
 			//나에게 delete 구간에 있는 캐릭터들 삭제 메시지 전송 
 			sBuffer->clear();
 			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), OtherPlayer->GetPlayerId(), sBuffer);
@@ -751,9 +759,19 @@ void GameServer::SendAddSectorProc(const Player* player, const SECTOR_SURROUND& 
 
 		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
 		{
+			//추가한것
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
 			// add 구간에 있는 캐릭터들에게 내 캐릭터 생성 메시지 전송 (OtherChracter Message)
 			SendCreateMessageToAddSector(player, OtherPlayer, static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER));
-			SendMoveStartMessageToAddSector(player, OtherPlayer, static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START));
+			
+			//보호차원에서 넣어보자.
+			if (player->GetAction() != PLAYER_NO_ACTION)
+			{
+				SendMoveStartMessageToAddSector(player, OtherPlayer, static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START));
+			}
 
 			// 나에게 add구간에 있는 캐릭터들 캐릭터 생성 메시지 전송 (OtherChracter Message)
 			SendCreateMessageToAddSector(OtherPlayer, player, static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER));
@@ -780,6 +798,13 @@ void GameServer::SendCreateMessageToAddSector(const Player* sendPlayer, const Pl
 		sendPlayer->GetHp(),
 		sBuffer
 	);
+
+	//Debug
+	if (recvPlayer->GetPlayerId() == 0)
+	{
+		printf("CREATE MESSAGE TO 0 FROM %d\n", sendPlayer->GetPlayerId());
+	}
+
 	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
 	_SbufferPool->deAllocate(sBuffer);
 }
@@ -796,6 +821,13 @@ void GameServer::SendMoveStartMessageToAddSector(const Player* sendPlayer, const
 		sendPlayer->GetY(),
 		sBuffer
 	);
+
+	//Debug
+	if (recvPlayer->GetPlayerId() == 0)
+	{
+		printf("MOVE START MESSAGE TO 0 FROM %d\n", sendPlayer->GetPlayerId());
+	}
+
 	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
 	_SbufferPool->deAllocate(sBuffer);
 }
@@ -887,6 +919,15 @@ void GameServer::SendToSector(Common::SerializeBuffer* message, const Player* pl
 			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
 			{
 				continue;
+			}
+			if ((message->getUsedSize() % 13 == 0) && OtherPlayer->GetPlayerId() == 0)
+			{
+				int index = message->getUsedSize() / 13;
+				for (int i = 0; i < index; i++)
+				{
+					printf("SESSION ID 0 RECEIEVE MsgType : %d FROM %d\n", *(message->getBufferPtr() + (13 * i + 2)), player->GetPlayerId());
+				}
+
 			}
 			SendUniCast(OtherPlayer->GetSessionId(), message, message->getUsedSize());
 		}
