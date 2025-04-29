@@ -19,9 +19,10 @@ int main()
 	ObjectPool<Player, PLAYER_POOL_SIZE, false>* playerPool = new ObjectPool<Player, PLAYER_POOL_SIZE, false>();
 	ObjectPool<Session, SESSION_POOL_SIZE, false>* sessionPool = new ObjectPool<Session, SESSION_POOL_SIZE, false>();
 	ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>* sBufferPool = new ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>();
-	FrameManager* frameManager = new FrameManager();
-	
+
 	Sector* sector = new Sector();
+	FrameManager* frameManager = new FrameManager();
+
 	GameServer* gameServer = new GameServer();
 	gameServer->registSessionPool(sessionPool);
 	gameServer->registPlayerPool(playerPool);

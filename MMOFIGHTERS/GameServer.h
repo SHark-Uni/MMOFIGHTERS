@@ -29,20 +29,35 @@ namespace Core
 		void OnRecvProc(Common::SerializeBuffer* message, const char msgType, SESSION_KEY key) override;
 		void OnDestroyProc(const SESSION_KEY key) override;
 
-		void SendToSector(Common::SerializeBuffer* message, const Player* player);
-		/*=== ÄÁÅÙÃ÷ ====*/
 		void ReqMoveStartProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqMoveStopProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqAttackLeftHandProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqAttackRightHandProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqAttackKickProc(Common::SerializeBuffer* message, const SESSION_KEY key);
 		void ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key);
-		//* ¹Ýº¹µÇ´Â ÄÚµå ¸ðµâ·Î »­. ÄÁÅÙÃ÷ ÄÚµå ±äÇÔ. *//
-		void SendDeleteSectorProc(const Player* player,  const SECTOR_SURROUND& deleteSector);
-		void SendAddSectorProc(const Player* player, const SECTOR_SURROUND& addSector);
 
-		void SendCreateMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType);
-		void SendMoveStartMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType);
+
+		void Post_DeleteSector_DeleteCharacterMsg(const Player* player, const SECTOR_SURROUND& deleteSector);
+		void Post_AddSector_CreateCharacterMsg(const Player* player, const SECTOR_SURROUND& addSector);
+		void Post_AroundSector_CreateCharacterMsg(const Player* player);
+		void Post_AroundSector_DeleteCharacterMsg(const Player* player);
+		void Post_AroundSector_MoveStartMsg(const Player* player);
+		void Post_AroundSector_MoveStopMsg(const Player* player);
+		void Post_AroundSector_LeftHandAttackMsg(const Player* player);
+		void Post_AroundSector_RightHandAttackMsg(const Player* player);
+		void Post_AroundSector_KickMsg(const Player* player);
+		void Post_AroundSector_DamangeMsg(const Player* target, const int attackerId);
+		void Post_Me_AroundSector_CreateCharacterMsg(const Player* player);
+
+		void Post_CreateOtherCharacterMsg(const Player* sendPlayer, const Player* recvPlayer);
+		void Post_MoveStartMsg(const Player* sendPlayer, const Player* recvPlayer);
+		void Post_DeleteCharacterMsg(const Player* sendPlayer, const Player* recvPlayer);
+		void Post_MoveStopMsg(const Player* sendPlayer, const Player* recvPlayer);
+		void Post_LeftHandAtkMsg(const Player* sendPlayer, const Player* recvPlayer);
+		void Post_RightHandAtkMsg(const Player* sendPlayer, const Player* recvPlayer);
+		void Post_KickMsg(const Player* sendPlayer, const Player* recvPlayer);
+		void Post_DamageMsg(const Player* sendPlayer, const Player* recvPlayer, const int attackerId);
+
 
 		void CheckAttackSucess(const Player* attacker, Player*& target, const int AttackRangeX, const int AttackRangeY, const SECTOR_SURROUND& attackRangeSector);
 		bool CheckAttackInRange(const short attackerX, const short attackerY, const int AttackRangeX, const int AttackRangeY, const short targetX, const short targetY, const char direction);
