@@ -72,6 +72,23 @@ namespace Core
 			_Sector[pos.y][pos.x].push_back(pTarget);
 		}
 		
+		//For Debug
+		inline void enrollPlayerForDebug(SECTOR_POS pos, Player* pTarget, int CAUSE, int id)
+		{
+			if ((pos.x == 0 || pos.x == 1) && pos.y == 48)
+			{
+				printf("ENROLL X : %d  | Y : %d | PLAYER ID : %d | CAUSE : %d |\n", pos.x , pos.y, id,CAUSE);
+			}
+
+			if ((pos.x == 0 || pos.x == 1) && pos.y == 49)
+			{
+				printf("ENROLL X : %d  | Y : %d | PLAYER ID : %d | CAUSE : %d |\n", pos.x, pos.y, id, CAUSE);
+			}
+
+			_Sector[pos.y][pos.x].push_back(pTarget);
+		}
+		
+
 		/*내 현재 섹터기준 오른쪽 Sector를 탐색*/
 		inline void getRightSideSector(const int sector_x, const int sector_y, SECTOR_SURROUND& rightSide)
 		{

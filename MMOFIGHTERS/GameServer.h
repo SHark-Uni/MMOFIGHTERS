@@ -5,6 +5,8 @@
 #include "Sector.h"
 #include "FrameManager.h"
 #include <list>
+#include <vector>
+#include <algorithm>
 
 namespace Core
 {
@@ -60,7 +62,8 @@ namespace Core
 				SECTOR_SURROUND around;
 				Player* target = ret->second;
 				SECTOR_POS curSector = target->GetSector();
-
+				std::vector<int> curPlayers;
+				curPlayers.reserve(64);
 				_pSector->getSurroundSector(curSector.x, curSector.y, around);
 
 				for (int i = 0; i < around._Count; i++)
@@ -70,9 +73,46 @@ namespace Core
 
 					for (auto& AroundPlayer : _pSector->_Sector[targetY][targetX])
 					{
-						printf("SECTOR X : %d | SECTOR Y : %d | PLAYER ID : %d \n",targetX, targetY, AroundPlayer->GetPlayerId());
+						curPlayers.push_back(AroundPlayer->GetPlayerId());
 					}
 				}
+				//주위에 아무것도 없다면, 출력 x
+				if (curPlayers.size() == 0)
+				{
+					return;
+				}
+				//달라졌다면
+				if (curPlayers.size() != playerInSector.size())
+				{
+					printf("============================================\n");
+					for (int i = 0; i < curPlayers.size(); i++)
+					{
+						printf("PLAYER ID : %d \n", curPlayers[i]);
+					}
+					printf("============================================\n");
+					std::swap(curPlayers, playerInSector);
+					return;
+				}
+
+				std::sort(curPlayers.begin(), curPlayers.end());
+				std::sort(playerInSector.begin(), playerInSector.end());
+
+				for (int i = 0; i < curPlayers.size(); i++)
+				{
+					//정렬을 했는데, 같지않은게 있다 -> 변화가 생겼다. 
+					if (curPlayers[i] != playerInSector[i])
+					{
+						printf("============================================\n");
+						for (int i = 0; i < curPlayers.size(); i++)
+						{
+							printf("PLAYER ID : %d \n", curPlayers[i]);
+						}
+						printf("============================================\n");
+						std::swap(curPlayers, playerInSector);
+						return;
+					}
+				}
+
 			}
 		}
 	private:
@@ -83,5 +123,8 @@ namespace Core
 		FrameManager* _FrameManager;
 		Sector* _pSector;
 		DWORD _DelayedTime;
+
+		//For Debug 
+		std::vector<int> playerInSector;
 	};
 }

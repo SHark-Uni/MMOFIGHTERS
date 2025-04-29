@@ -48,8 +48,8 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 	newPlayer = _PlayerPool->allocate();
 	playerKey = newPlayer->generatePlayerId();
 	newPlayer->Init(playerKey, key);
-
-	_pSector->enrollPlayer(newPlayer->GetSector(), newPlayer);
+	_pSector->enrollPlayerForDebug(newPlayer->GetSector(), newPlayer, 0, newPlayer->GetPlayerId());
+	//_pSector->enrollPlayer(newPlayer->GetSector(), newPlayer);
 	newPlayer->SetTimeOut(::timeGetTime());
 	
 	_keys.insert({ key, playerKey });
@@ -306,7 +306,8 @@ void GameServer::update()
 		}
 		//섹터 이동해줘야함. 이전 섹터에서 빼주고, 현재 섹터에 등록
 		_pSector->dropOutPlayer(cur->GetPrevSector(), cur);
-		_pSector->enrollPlayer(cur->GetSector(), cur);
+		_pSector->enrollPlayerForDebug(cur->GetSector(), cur, 1, cur->GetPlayerId());
+		//_pSector->enrollPlayer(cur->GetSector(), cur);
 #ifdef GAME_DEBUG
 		printf("prevSector : (%d, %d) |  curSector : (%d, %d)| (%d,%d)  ->  (%d, %d) \n", 
 			cur->GetPrevSector().y, cur->GetPrevSector().x,
@@ -363,6 +364,7 @@ void Core::GameServer::fixedUpdate()
 		}
 	}
 	_FrameManager->DisplayFrameInfo();
+	printAroundSector();
 }
 
 void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY key)
@@ -490,14 +492,14 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 	SECTOR_POS fixedSector = { recvX / SECTOR_WIDTH, recvY / SECTOR_HEIGHT };
 	
 	//섹터변화가 있다면
-	if ((curSector.x != recvX / SECTOR_WIDTH) || (curSector.y != recvY / SECTOR_HEIGHT))
+	if ((curSector.x != fixedSector.x) || (curSector.y != fixedSector.y))
 	{
 		SECTOR_SURROUND deleteArea;
 		SECTOR_SURROUND addArea;
 		_pSector->getUpdateSurroundSector(curSector, fixedSector, deleteArea, addArea);
-
 		_pSector->dropOutPlayer(curSector, player);
-		_pSector->enrollPlayer(fixedSector, player);
+		_pSector->enrollPlayerForDebug(curSector, player, 2, player->GetPlayerId());
+		//_pSector->enrollPlayer(fixedSector, player);
 
 		//내가 직접 움직여주는 것이므로, sector조정도 수동으로 해야함. 
 		player->SetPrevSector(curSector);
