@@ -27,14 +27,14 @@ void Player::Init(const int playerId, const int sessionId)
 
 int Player::generateSpawnY() const
 {
-	return (rand() % (RANGE_MOVE_BOTTOM - RANGE_MOVE_TOP) + RANGE_MOVE_TOP);
-	//return 400;
+	//return (rand() % (RANGE_MOVE_BOTTOM - RANGE_MOVE_TOP) + RANGE_MOVE_TOP);
+	return 400;
 }
 
 int Player::generateSpawnX() const
 {
-	return (rand() % (RANGE_MOVE_RIGHT - RANGE_MOVE_LEFT) + RANGE_MOVE_LEFT);
-	//return 150;
+	//return (rand() % (RANGE_MOVE_RIGHT - RANGE_MOVE_LEFT) + RANGE_MOVE_LEFT);
+	return 150;
 }
 void Player::Move(const short x, const short y)
 {

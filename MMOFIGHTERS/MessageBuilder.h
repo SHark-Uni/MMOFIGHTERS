@@ -9,7 +9,7 @@ using namespace Common;
 
 namespace Core
 {
-	inline void buildMsg_createMyCharacter(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, _BYTE hp, Common::SerializeBuffer* message)
+	inline void buildMsg_createMyCharacter(char type, int id, char direction, unsigned short x, unsigned short y, char hp, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << id << direction << x << y << hp;
@@ -20,7 +20,7 @@ namespace Core
 		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp), type);
 		return;
 	}
-	inline void buildMsg_createOtherCharacter(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, _BYTE hp, Common::SerializeBuffer* message)
+	inline void buildMsg_createOtherCharacter(char type, int id, char direction, unsigned short x, unsigned short y, char hp, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << id << direction << x << y << hp;
@@ -33,7 +33,7 @@ namespace Core
 		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y) + sizeof(hp), type);
 		return;
 	}
-	inline void buildMsg_deleteCharacter(_BYTE type, int id, Common::SerializeBuffer* message)
+	inline void buildMsg_deleteCharacter(char type, int id, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 
@@ -46,20 +46,20 @@ namespace Core
 		return;
 	}
 
-	inline void buildMsg_move_start(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
+	inline void buildMsg_move_start(char type, int id, char action, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
-		*message << id << direction << x << y;
+		*message << id << action << x << y;
 
 		if (message->checkFailBit())
 		{
 			DebugBreak();
 		}
-		message->setHeader(SIGNITURE, sizeof(id) + sizeof(direction) + sizeof(x) + sizeof(y), type);
+		message->setHeader(SIGNITURE, sizeof(id) + sizeof(action) + sizeof(x) + sizeof(y), type);
 		return;
 	}
 
-	inline void buildMsg_move_stop(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
+	inline void buildMsg_move_stop(char type, int id, char direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << id << direction << x << y;
@@ -73,7 +73,7 @@ namespace Core
 		return;
 	}
 
-	inline void buildMsg_attack_lefthand(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
+	inline void buildMsg_attack_lefthand(char type, int id, char direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << id << direction << x << y;
@@ -86,7 +86,7 @@ namespace Core
 		return;
 	}
 
-	inline void buildMsg_attack_righthand(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
+	inline void buildMsg_attack_righthand(char type, int id, char direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << id << direction << x << y;
@@ -99,7 +99,7 @@ namespace Core
 		return;
 	}
 
-	inline void buildMsg_attack_kick(_BYTE type, int id, _BYTE direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
+	inline void buildMsg_attack_kick(char type, int id, char direction, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << id << direction << x << y;
@@ -112,7 +112,7 @@ namespace Core
 		return;
 	}
 
-	inline void buildMsg_damage(_BYTE type, int attackId, int targetId, _BYTE targetHp, Common::SerializeBuffer* message)
+	inline void buildMsg_damage(char type, int attackId, int targetId, char targetHp, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << attackId << targetId << targetHp;
@@ -126,7 +126,7 @@ namespace Core
 		return;
 	}
 
-	inline void buildMsg_Sync(_BYTE type, int playerId, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
+	inline void buildMsg_Sync(char type, int playerId, unsigned short x, unsigned short y, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << playerId << x << y;
@@ -138,7 +138,7 @@ namespace Core
 		return;
 	}
 
-	inline void buildMsg_Echo(_BYTE type, int time, Common::SerializeBuffer* message)
+	inline void buildMsg_Echo(char type, int time, Common::SerializeBuffer* message)
 	{
 		message->reserveHeader();
 		*message << time;

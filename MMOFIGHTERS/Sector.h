@@ -33,7 +33,7 @@ namespace Core
 	{
 	public:
 		//사실 Sector의 x,y는  Sector Width,Height를 나누면 바로 나옴. 거기에 등록해주면 됨.  
-		inline void getSurroundSector(int sector_x, int sector_y, SECTOR_SURROUND& sectorSurround)
+		inline void getSurroundSector(int sector_x, int sector_y, SECTOR_SURROUND& sectorSurround) const
 		{
 			int dx[Common::SECTOR_COLUMN_SIZE] = { -1,0,1 };
 			int dy[Common::SECTOR_ROW_SIZE] = { -1,0,1 };
@@ -90,7 +90,7 @@ namespace Core
 		
 
 		/*내 현재 섹터기준 오른쪽 Sector를 탐색*/
-		inline void getRightSideSector(const int sector_x, const int sector_y, SECTOR_SURROUND& rightSide)
+		inline void getRightSideSector(const int sector_x, const int sector_y, SECTOR_SURROUND& rightSide) const
 		{
 			int cnt = 0;
 			for (int offsetX = 0; offsetX < 2; offsetX++)
@@ -112,7 +112,7 @@ namespace Core
 			}
 			rightSide._Count = cnt;
 		}
-		inline void getLeftSideSector(const int sector_x, const int sector_y, SECTOR_SURROUND& leftSide)
+		inline void getLeftSideSector(const int sector_x, const int sector_y, SECTOR_SURROUND& leftSide) const
 		{
 			int cnt = 0;
 			for (int offsetX = 0; offsetX >= -1; offsetX--)
@@ -145,7 +145,7 @@ namespace Core
 		}
 
 		/*일단, for문으로 prev Sector와 new Sector 중 deleteSector, add_sector 구한 다음, 느리다면 케이스를 나눠서 최적화 시켜보자.*/
-		inline void getUpdateSurroundSector(SECTOR_POS prev_sector, SECTOR_POS new_sector, SECTOR_SURROUND& delete_secotr, SECTOR_SURROUND& add_sector)
+		inline void getUpdateSurroundSector(SECTOR_POS prev_sector, SECTOR_POS new_sector, SECTOR_SURROUND& delete_secotr, SECTOR_SURROUND& add_sector) const
 		{
 			SECTOR_SURROUND prevAround;
 			SECTOR_SURROUND curAround;
@@ -208,6 +208,7 @@ namespace Core
 		}
 private:
 		friend class GameServer;
+		//forDebug
 		friend class FrameManager;
 		std::list<Player*> _Sector[Common::SECTOR_MAX_ROW][Common::SECTOR_MAX_COLUMN];
 	};

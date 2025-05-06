@@ -35,6 +35,7 @@ void GameServer::registSector(Sector* sector)
 	_pSector = sector;
 }
 
+
 void GameServer::registFrameManager(FrameManager* frameManager)
 {
 	_FrameManager = frameManager;
@@ -48,8 +49,12 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 	newPlayer = _PlayerPool->allocate();
 	playerKey = newPlayer->generatePlayerId();
 	newPlayer->Init(playerKey, key);
+#ifdef GAME_DEBUG
 	_pSector->enrollPlayerForDebug(newPlayer->GetSector(), newPlayer, 0, newPlayer->GetPlayerId());
-	//_pSector->enrollPlayer(newPlayer->GetSector(), newPlayer);
+#else
+	_pSector->enrollPlayer(newPlayer->GetSector(), newPlayer);
+#endif
+	
 	newPlayer->SetTimeOut(::timeGetTime());
 	
 	_keys.insert({ key, playerKey });
@@ -68,7 +73,7 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 #endif 
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
 	sBuffer->clear();
-	//1. 내 캐릭터 생성 메시지 전송 (섹터)
+	//1. 내 캐릭터 생성 메시지 전송
 	buildMsg_createMyCharacter(
 		static_cast<int>(MESSAGE_DEFINE::RES_CREATE_MY_CHARACTER),
 		playerKey,
@@ -80,67 +85,10 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 	);
 	SendUniCast(key, sBuffer, sBuffer->getUsedSize());
 
-	sBuffer->clear();
-	//2.내 캐릭터 생성 메시지 섹터에게 보내주기
-	buildMsg_createOtherCharacter(
-		static_cast<int>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER), 
-		playerKey, 
-		newPlayer->GetDirection(), 
-		newPlayer->GetX(), 
-		newPlayer->GetY(), 
-		newPlayer->GetHp(), 
-		sBuffer
-	);
-	SendToSector(sBuffer, newPlayer);
-	//SendBroadCast(key, sBuffer, sBuffer->getUsedSize());
-
-	//3. 섹터를 돌면서, 섹터에 존재하는 캐릭터들 생성해주는 메시지 보내기.
-	SECTOR_POS curSector = newPlayer->GetSector();
-	SECTOR_SURROUND around;
-
-	int nx;
-	int ny;
-	_pSector->getSurroundSector(curSector.x, curSector.y, around);
-	for (int i = 0; i < around._Count; i++)
-	{
-		nx = around._Surround[i].x;
-		ny = around._Surround[i].y;
-
-		for (auto& OtherPlayer : _pSector->_Sector[ny][nx])
-		{
-			if (OtherPlayer->GetPlayerId() == newPlayer->GetPlayerId())
-			{
-				continue;
-			}
-			sBuffer->clear();
-			buildMsg_createOtherCharacter(
-				static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER),
-				OtherPlayer->GetPlayerId(), 
-				OtherPlayer->GetDirection(), 
-				OtherPlayer->GetX(),
-				OtherPlayer->GetY(),
-				OtherPlayer->GetHp(),
-				sBuffer
-			);
-			SendUniCast(key, sBuffer, sBuffer->getUsedSize());
-
-			//움직이고 있다면
-			if (OtherPlayer->GetAction() > 0)
-			{
-				sBuffer->clear();
-				buildMsg_move_start(
-					static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START), 
-					OtherPlayer->GetPlayerId(), 
-					OtherPlayer->GetAction(), 
-					OtherPlayer->GetX(),
-					OtherPlayer->GetY(),
-					sBuffer
-				);
-				SendUniCast(key, sBuffer, sBuffer->getUsedSize());
-			}
-		}
-	}
-	_SbufferPool->deAllocate(sBuffer);
+	//2. 주위 섹터에게 플레이어(나) 생성하는 메시지 보내기
+	Post_AroundSector_CreateCharacterMsg(newPlayer);
+	//3. 섹터를 돌면서, 섹터에 존재하는 캐릭터(타인)들 생성해주는 메시지 보내기.
+	Post_Me_AroundSector_CreateCharacterMsg(newPlayer);
 }
 
 void GameServer::OnRecvProc(SerializeBuffer* message, const char msgType, SESSION_KEY key)
@@ -213,8 +161,6 @@ void GameServer::cleanUpPlayer()
 	auto iter = _Players.begin();
 	auto iter_e = _Players.end();
 
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-
 	for (; iter != iter_e; )
 	{
 		Player* cur = iter->second;
@@ -222,10 +168,7 @@ void GameServer::cleanUpPlayer()
 
 		if (cur->IsAlive() == false)
 		{
-			sBuffer->clear();
-			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), key, sBuffer);
-			SendToSector(sBuffer, cur);
-
+			Post_AroundSector_DeleteCharacterMsg(cur);
 			_pSector->dropOutPlayer(cur->GetSector(), cur);
 			_keys.erase(cur->GetSessionId());
 			_PlayerPool->deAllocate(cur);
@@ -234,7 +177,6 @@ void GameServer::cleanUpPlayer()
 		}
 		++iter;
 	}
-	_SbufferPool->deAllocate(sBuffer);
 }
 
 void GameServer::update()
@@ -306,8 +248,11 @@ void GameServer::update()
 		}
 		//섹터 이동해줘야함. 이전 섹터에서 빼주고, 현재 섹터에 등록
 		_pSector->dropOutPlayer(cur->GetPrevSector(), cur);
+#ifdef GAME_DEBUG
 		_pSector->enrollPlayerForDebug(cur->GetSector(), cur, 1, cur->GetPlayerId());
-		//_pSector->enrollPlayer(cur->GetSector(), cur);
+#else
+		_pSector->enrollPlayer(cur->GetSector(), cur);
+#endif
 #ifdef GAME_DEBUG
 		printf("prevSector : (%d, %d) |  curSector : (%d, %d)| (%d,%d)  ->  (%d, %d) \n", 
 			cur->GetPrevSector().y, cur->GetPrevSector().x,
@@ -321,8 +266,8 @@ void GameServer::update()
 		SECTOR_SURROUND addArea;
 		_pSector->getUpdateSurroundSector(cur->GetPrevSector(), cur->GetSector(), deleteArea, addArea);
 
-		SendDeleteSectorProc(cur, deleteArea);
-		SendAddSectorProc(cur, addArea);
+		Post_DeleteSector_DeleteCharacterMsg(cur, deleteArea);
+		Post_AddSector_CreateCharacterMsg(cur, addArea);
 		
 		cur->MoveSectorIsDone();
 #ifdef GAME_DEBUG
@@ -416,19 +361,14 @@ void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY ke
 	default:
 		break;
 	}
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-	sBuffer->clear();
-	//나 빼고 다 보내기
 
-	buildMsg_move_start(static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START), playerKey, action, recvX, recvY, sBuffer);
 #ifdef GAME_DEBUG
 	printf("============================================================\n");
 	printf("MOVE START MESSAGE\n");
 	printf("PLAYER ID : %d | SESSION ID : %d | PARAMETER KEY : %d |CUR_X : %hd  | CUR_Y : %hd |\n", player->GetPlayerId(), player->GetSessionId(), key, player->GetX(), player->GetY());
 	printf("============================================================\n");
 #endif
-	SendToSector(sBuffer,player);
-	_SbufferPool->deAllocate(sBuffer);
+	Post_AroundSector_MoveStartMsg(player);
 }
 
 void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key)
@@ -448,7 +388,6 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 	{
 		return;
 	}
-
 	if (CheckDirection(direction) == false)
 	{
 		return;
@@ -498,25 +437,25 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 		SECTOR_SURROUND addArea;
 		_pSector->getUpdateSurroundSector(curSector, fixedSector, deleteArea, addArea);
 		_pSector->dropOutPlayer(curSector, player);
+#ifdef GAME_DEBUG
 		_pSector->enrollPlayerForDebug(curSector, player, 2, player->GetPlayerId());
-		//_pSector->enrollPlayer(fixedSector, player);
-
+#else
+		_pSector->enrollPlayer(fixedSector, player);
+#endif
 		//내가 직접 움직여주는 것이므로, sector조정도 수동으로 해야함. 
 		player->SetPrevSector(curSector);
 		player->SetSector(fixedSector);
 		
 		//섹터변화에 맞게 네트워크 송수신이 일어나야함. 
-		SendDeleteSectorProc(player, deleteArea);
-		SendAddSectorProc(player, addArea);
+		Post_DeleteSector_DeleteCharacterMsg(player, deleteArea);
+		Post_AddSector_CreateCharacterMsg(player, addArea);
 	}
 #ifdef GAME_DEBUG
 	printf("MOVE STOP MESSAGE\n");
 	printf("PLAYER ID : %d | SESSION ID : %d | PARAM KEY : %d |CUR_X : %hd  | CUR_Y : %hd |\n", player->GetPlayerId(), player->GetSessionId(), key, player->GetX(), player->GetY());
 #endif
 	//무브스탑 메시지 생성 후 보내기
-	sBuffer->clear();
-	buildMsg_move_stop(static_cast<char>(MESSAGE_DEFINE::RES_MOVE_STOP), playerKey, direction, player->GetX(), player->GetY(), sBuffer);
-	SendToSector(sBuffer, player);
+	Post_AroundSector_MoveStopMsg(player);
 
 	_SbufferPool->deAllocate(sBuffer);
 	return;
@@ -540,28 +479,16 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 		return;
 	}
 	 
-	int playerKey = _keys.find(key)->second;
-	Player* attacker = _Players.find(playerKey)->second;
+	int attackerKey = _keys.find(key)->second;
+	Player* attacker = _Players.find(attackerKey)->second;
 	attacker->SetTimeOut(::timeGetTime());
 	Player* target = nullptr;
 
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-	char attackerDirection = attacker->GetDirection();
-
-	sBuffer->clear();
-	buildMsg_attack_lefthand(
-		static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_LEFT_HAND), 
-		playerKey, 
-		attackDir, 
-		attacker->GetX(),
-		attacker->GetY(),
-		sBuffer
-	);
-	SendToSector(sBuffer, attacker);
+	Post_AroundSector_LeftHandAttackMsg(attacker);
 
 	SECTOR_SURROUND targetSide;
 	SECTOR_POS curSector = attacker->GetSector();
-	if (attackerDirection == CHARACTER_DIRECTION_LEFT)
+	if (attacker->GetDirection() == CHARACTER_DIRECTION_LEFT)
 	{
 		_pSector->getLeftSideSector(curSector.x, curSector.y, targetSide);
 	}
@@ -573,12 +500,9 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 	CheckAttackSucess(attacker, target, ATTACK_LEFT_HAND_RANGE_X, ATTACK_LEFT_HAND_RANGE_Y, targetSide);
 	if (target != nullptr)
 	{
-		sBuffer->clear();
 		target->Attacked(DAMAGE_LEFT_HAND);
-		buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), attacker->GetPlayerId(), target->GetPlayerId(), target->GetHp(), sBuffer);
-		SendToSector(sBuffer, target);
+		Post_AroundSector_DamangeMsg(target, attackerKey);
 	}
-	_SbufferPool->deAllocate(sBuffer);
 }
 
 void GameServer::ReqAttackRightHandProc(SerializeBuffer* message, const SESSION_KEY key)
@@ -599,29 +523,17 @@ void GameServer::ReqAttackRightHandProc(SerializeBuffer* message, const SESSION_
 	}
 
 	//내 캐릭터 정보 찾기
-	int playerKey = _keys.find(key)->second;
-	Player* attacker = _Players.find(playerKey)->second;
+	int attackerKey = _keys.find(key)->second;
+	Player* attacker = _Players.find(attackerKey)->second;
 	Player* target = nullptr;
 	attacker->SetTimeOut(::timeGetTime());
 
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	Post_AroundSector_RightHandAttackMsg(attacker);
 
-	char attackerDirection = attacker->GetDirection();
-
-	sBuffer->clear();
-	buildMsg_attack_lefthand(
-		static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_LEFT_HAND),
-		playerKey,
-		attackerDirection,
-		attacker->GetX(),
-		attacker->GetY(),
-		sBuffer
-	);
-	SendToSector(sBuffer, attacker);
 	//어택 판정
 	SECTOR_SURROUND targetSide;
 	SECTOR_POS curSector = attacker->GetSector();
-	if (attackerDirection == CHARACTER_DIRECTION_LEFT)
+	if (attacker->GetDirection() == CHARACTER_DIRECTION_LEFT)
 	{
 		_pSector->getLeftSideSector(curSector.x, curSector.y, targetSide);
 	}
@@ -633,12 +545,9 @@ void GameServer::ReqAttackRightHandProc(SerializeBuffer* message, const SESSION_
 	CheckAttackSucess(attacker, target, ATTACK_RIGHT_HAND_RANGE_X, ATTACK_RIGHT_HAND_RANGE_Y, targetSide);
 	if (target != nullptr)
 	{
-		sBuffer->clear();
 		target->Attacked(DAMAGE_LEFT_HAND);
-		buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), attacker->GetPlayerId(), target->GetPlayerId(), target->GetHp(), sBuffer);
-		SendToSector(sBuffer, target);
+		Post_AroundSector_DamangeMsg(target, attackerKey);
 	}
-	_SbufferPool->deAllocate(sBuffer);
 }
 
 void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY key)
@@ -659,21 +568,16 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 	}
 
 	//내 캐릭터 정보
-	int playerKey = _keys.find(key)->second;
-	Player* attacker = _Players.find(playerKey)->second;
+	int attackerKey = _keys.find(key)->second;
+	Player* attacker = _Players.find(attackerKey)->second;
 	Player* target = nullptr;
 	attacker->SetTimeOut(::timeGetTime());
 
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-	char attackerDirection = attacker->GetDirection();
-
-	sBuffer->clear();
-	buildMsg_attack_kick(static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_KICK), playerKey, attackDir, attacker->GetX(), attacker->GetY(), sBuffer);
-	SendToSector(sBuffer, attacker);
+	Post_AroundSector_KickMsg(attacker);
 
 	SECTOR_SURROUND targetSide;
 	SECTOR_POS curSector = attacker->GetSector();
-	if (attackerDirection == CHARACTER_DIRECTION_LEFT)
+	if (attacker->GetDirection() == CHARACTER_DIRECTION_LEFT)
 	{
 		_pSector->getLeftSideSector(curSector.x, curSector.y, targetSide);
 	}
@@ -685,13 +589,9 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 	CheckAttackSucess(attacker, target, ATTACK_KICK_X, ATTACK_KICK_Y, targetSide);
 	if (target != nullptr)
 	{
-		sBuffer->clear();
 		target->Attacked(DAMAGE_LEFT_HAND);
-		buildMsg_damage(static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE), attacker->GetPlayerId(), target->GetPlayerId(), target->GetHp(), sBuffer);
-		SendToSector(sBuffer, target);
+		Post_AroundSector_DamangeMsg(target, attackerKey);
 	}
-
-	_SbufferPool->deAllocate(sBuffer);
 }
 
 void GameServer::ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key)
@@ -709,128 +609,6 @@ void GameServer::ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key
 
 	buildMsg_Echo(static_cast<char>(MESSAGE_DEFINE::RES_ECHO), time, sBuffer);
 	SendUniCast(key, sBuffer, sBuffer->getUsedSize());
-	_SbufferPool->deAllocate(sBuffer);
-}
-
-void GameServer::SendDeleteSectorProc(const Player* player, const SECTOR_SURROUND& deleteSector)
-{
-	int targetX;
-	int targetY;
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-	for (int i = 0; i < deleteSector._Count; i++)
-	{
-		targetX = deleteSector._Surround[i].x;
-		targetY = deleteSector._Surround[i].y;
-
-		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
-		{
-			//추가한것 
-			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
-			{
-				continue;
-			}
-			//delete 구간에 있는 캐릭들에게 내 캐릭터 삭제 메시지 전송 
-			sBuffer->clear();
-			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), player->GetPlayerId(), sBuffer);
-			SendUniCast(OtherPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
-
-			//Debug
-			if (OtherPlayer->GetSessionId() == 0)
-			{
-				printf("DELETE MESSAGE TO 0 FROM %d\n", player->GetPlayerId());
-			}
-			//나에게 delete 구간에 있는 캐릭터들 삭제 메시지 전송 
-			sBuffer->clear();
-			buildMsg_deleteCharacter(static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER), OtherPlayer->GetPlayerId(), sBuffer);
-			SendUniCast(player->GetSessionId(), sBuffer, sBuffer->getUsedSize());
-		}
-	}
-
-	_SbufferPool->deAllocate(sBuffer);
-}
-
-void GameServer::SendAddSectorProc(const Player* player, const SECTOR_SURROUND& addSector)
-{
-	int targetX;
-	int targetY;
-	
-	for (int i = 0; i < addSector._Count; i++)
-	{
-		targetX = addSector._Surround[i].x;
-		targetY = addSector._Surround[i].y;
-
-		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
-		{
-			//추가한것
-			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
-			{
-				continue;
-			}
-			// add 구간에 있는 캐릭터들에게 내 캐릭터 생성 메시지 전송 (OtherChracter Message)
-			SendCreateMessageToAddSector(player, OtherPlayer, static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER));
-			
-			//보호차원에서 넣어보자.
-			if (player->GetAction() != PLAYER_NO_ACTION)
-			{
-				SendMoveStartMessageToAddSector(player, OtherPlayer, static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START));
-			}
-
-			// 나에게 add구간에 있는 캐릭터들 캐릭터 생성 메시지 전송 (OtherChracter Message)
-			SendCreateMessageToAddSector(OtherPlayer, player, static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER));
-			//움직이고 있는 캐릭이 있다면, 나에게 움직이라는 메시지 전송
-			if (OtherPlayer->GetAction() != PLAYER_NO_ACTION)
-			{
-				SendMoveStartMessageToAddSector(OtherPlayer, player, static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START));
-			}
-		}
-	}
-	
-}
-
-void GameServer::SendCreateMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType)
-{
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-	sBuffer->clear();
-	buildMsg_createOtherCharacter(
-		msgType,
-		sendPlayer->GetPlayerId(),
-		sendPlayer->GetDirection(),
-		sendPlayer->GetX(),
-		sendPlayer->GetY(),
-		sendPlayer->GetHp(),
-		sBuffer
-	);
-
-	//Debug
-	if (recvPlayer->GetPlayerId() == 0)
-	{
-		printf("CREATE MESSAGE TO 0 FROM %d\n", sendPlayer->GetPlayerId());
-	}
-
-	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
-	_SbufferPool->deAllocate(sBuffer);
-}
-
-void GameServer::SendMoveStartMessageToAddSector(const Player* sendPlayer, const Player* recvPlayer, const char msgType)
-{
-	SerializeBuffer* sBuffer = _SbufferPool->allocate();
-	sBuffer->clear();
-	buildMsg_move_start(
-		msgType,
-		sendPlayer->GetPlayerId(),
-		sendPlayer->GetAction(),
-		sendPlayer->GetX(),
-		sendPlayer->GetY(),
-		sBuffer
-	);
-
-	//Debug
-	if (recvPlayer->GetPlayerId() == 0)
-	{
-		printf("MOVE START MESSAGE TO 0 FROM %d\n", sendPlayer->GetPlayerId());
-	}
-
-	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
 	_SbufferPool->deAllocate(sBuffer);
 }
 
@@ -905,12 +683,72 @@ bool GameServer::CheckDirection(char direction)
 	return false;
 }
 
-void GameServer::SendToSector(Common::SerializeBuffer* message, const Player* player)
+void GameServer::Post_DeleteSector_DeleteCharacterMsg(const Player* player, const SECTOR_SURROUND& deleteSector)
+{
+	int targetX;
+	int targetY;
+	for (int i = 0; i < deleteSector._Count; i++)
+	{
+		targetX = deleteSector._Surround[i].x;
+		targetY = deleteSector._Surround[i].y;
+
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			//추가한것 
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			//delete 구간에 있는 캐릭들에게 내 캐릭터 삭제 메시지 전송 
+			Post_DeleteCharacterMsg(player, OtherPlayer);
+			//나에게 delete 구간에 있는 캐릭터들 삭제 메시지 전송 
+			Post_DeleteCharacterMsg(OtherPlayer, player);
+		}
+	}
+}
+
+void GameServer::Post_AddSector_CreateCharacterMsg(const Player* player, const SECTOR_SURROUND& addSector)
+{
+	int targetX;
+	int targetY;
+
+	for (int i = 0; i < addSector._Count; i++)
+	{
+		targetX = addSector._Surround[i].x;
+		targetY = addSector._Surround[i].y;
+
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			//추가한것
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			// add 구간에 있는 캐릭터들에게 내 캐릭터 생성 메시지 전송 (OtherChracter Message)
+			Post_CreateOtherCharacterMsg(player, OtherPlayer);
+			if (player->GetAction() != PLAYER_NO_ACTION)
+			{
+				Post_MoveStartMsg(player, OtherPlayer);
+			}
+
+			// 나에게 add구간에 있는 캐릭터들 캐릭터 생성 메시지 전송
+			Post_CreateOtherCharacterMsg(OtherPlayer, player);
+			//움직이고 있는 캐릭이 있다면, 나에게 움직이라는 메시지 전송
+			if (OtherPlayer->GetAction() != PLAYER_NO_ACTION)
+			{
+				Post_MoveStartMsg(OtherPlayer, player);
+			}
+		}
+	}
+
+}
+
+void GameServer::Post_AroundSector_CreateCharacterMsg(const Player* player)
 {
 	SECTOR_SURROUND around;
 	SECTOR_POS curSector = player->GetSector();
-
 	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
 	for (int i = 0; i < around._Count; i++)
 	{
 		//섹터마다 모든 Player들에게 해당 메시지 전송을 요청해야함.
@@ -922,19 +760,328 @@ void GameServer::SendToSector(Common::SerializeBuffer* message, const Player* pl
 			{
 				continue;
 			}
-			if ((message->getUsedSize() % 13 == 0) && OtherPlayer->GetPlayerId() == 0)
-			{
-				int index = message->getUsedSize() / 13;
-				for (int i = 0; i < index; i++)
-				{
-					printf("SESSION ID 0 RECEIEVE MsgType : %d FROM %d\n", *(message->getBufferPtr() + (13 * i + 2)), player->GetPlayerId());
-				}
-
-			}
-			SendUniCast(OtherPlayer->GetSessionId(), message, message->getUsedSize());
+			Post_CreateOtherCharacterMsg(player, OtherPlayer);
 		}
 	}
-	
+}
+
+void GameServer::Post_AroundSector_DeleteCharacterMsg(const Player* player)
+{
+	SECTOR_SURROUND around;
+	SECTOR_POS curSector = player->GetSector();
+	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
+	for (int i = 0; i < around._Count; i++)
+	{
+		//섹터마다 모든 Player들에게 해당 메시지 전송을 요청해야함.
+		int targetY = around._Surround[i].y;
+		int targetX = around._Surround[i].x;
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			Post_DeleteCharacterMsg(player, OtherPlayer);
+		}
+	}
+}
+
+void GameServer::Post_AroundSector_MoveStartMsg(const Player* player)
+{
+	SECTOR_SURROUND around;
+	SECTOR_POS curSector = player->GetSector();
+	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
+	for (int i = 0; i < around._Count; i++)
+	{
+		//섹터마다 모든 Player들에게 해당 메시지 전송을 요청해야함.
+		int targetY = around._Surround[i].y;
+		int targetX = around._Surround[i].x;
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			Post_MoveStartMsg(player, OtherPlayer);
+		}
+	}
+}
+
+void GameServer::Post_AroundSector_MoveStopMsg(const Player* player)
+{
+	SECTOR_SURROUND around;
+	SECTOR_POS curSector = player->GetSector();
+	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
+	for (int i = 0; i < around._Count; i++)
+	{
+		//섹터마다 모든 Player들에게 해당 메시지 전송을 요청해야함.
+		int targetY = around._Surround[i].y;
+		int targetX = around._Surround[i].x;
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			Post_MoveStopMsg(player, OtherPlayer);
+		}
+	}
+}
+
+void GameServer::Post_AroundSector_LeftHandAttackMsg(const Player* player)
+{
+	SECTOR_SURROUND around;
+	SECTOR_POS curSector = player->GetSector();
+	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
+	for (int i = 0; i < around._Count; i++)
+	{
+		//섹터마다 모든 Player들에게 해당 메시지 전송을 요청해야함.
+		int targetY = around._Surround[i].y;
+		int targetX = around._Surround[i].x;
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			Post_LeftHandAtkMsg(player, OtherPlayer);
+		}
+	}
+}
+
+void GameServer::Post_AroundSector_RightHandAttackMsg(const Player* player)
+{
+	SECTOR_SURROUND around;
+	SECTOR_POS curSector = player->GetSector();
+	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
+	for (int i = 0; i < around._Count; i++)
+	{
+		//섹터마다 모든 Player들에게 해당 메시지 전송을 요청해야함.
+		int targetY = around._Surround[i].y;
+		int targetX = around._Surround[i].x;
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			Post_RightHandAtkMsg(player, OtherPlayer);
+		}
+	}
+}
+
+void GameServer::Post_AroundSector_KickMsg(const Player* player)
+{
+	SECTOR_SURROUND around;
+	SECTOR_POS curSector = player->GetSector();
+	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
+	for (int i = 0; i < around._Count; i++)
+	{
+		//섹터마다 모든 Player들에게 해당 메시지 전송을 요청해야함.
+		int targetY = around._Surround[i].y;
+		int targetX = around._Surround[i].x;
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			Post_KickMsg(player, OtherPlayer);
+		}
+	}
+}
+
+void GameServer::Post_AroundSector_DamangeMsg(const Player* target, const int attackerId)
+{
+	SECTOR_SURROUND around;
+	SECTOR_POS curSector = target->GetSector();
+	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+
+	for (int i = 0; i < around._Count; i++)
+	{
+		//섹터마다 모든 Player들에게 해당 메시지 전송을 요청해야함.
+		int targetY = around._Surround[i].y;
+		int targetX = around._Surround[i].x;
+		//Damage는 이펙트를 위해, 때린 나한테도 보내야한다.
+		for (auto& OtherPlayer : _pSector->_Sector[targetY][targetX])
+		{
+			Post_DamageMsg(target, OtherPlayer, attackerId);
+		}
+	}
+}
+
+void GameServer::Post_Me_AroundSector_CreateCharacterMsg(const Player* player)
+{
+	SECTOR_POS curSector = player->GetSector();
+	SECTOR_SURROUND around;
+
+	int nx;
+	int ny;
+	_pSector->getSurroundSector(curSector.x, curSector.y, around);
+	for (int i = 0; i < around._Count; i++)
+	{
+		nx = around._Surround[i].x;
+		ny = around._Surround[i].y;
+
+		for (auto& OtherPlayer : _pSector->_Sector[ny][nx])
+		{
+			if (OtherPlayer->GetPlayerId() == player->GetPlayerId())
+			{
+				continue;
+			}
+			Post_CreateOtherCharacterMsg(OtherPlayer, player);
+
+			//움직이고 있다면
+			if (OtherPlayer->GetAction() > 0)
+			{
+				Post_MoveStartMsg(OtherPlayer, player);
+			}
+		}
+	}
+}
+
+void GameServer::Post_CreateOtherCharacterMsg(const Player* sendPlayer, const Player* recvPlayer)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+	buildMsg_createOtherCharacter(
+		static_cast<char>(MESSAGE_DEFINE::RES_CREATE_OTHER_CHARACTER),
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetDirection(),
+		sendPlayer->GetX(),
+		sendPlayer->GetY(),
+		sendPlayer->GetHp(),
+		sBuffer
+	);
+
+	//Debug
+	if (recvPlayer->GetPlayerId() == 0)
+	{
+		printf("CREATE MESSAGE TO 0 FROM %d\n", sendPlayer->GetPlayerId());
+	}
+
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::Post_MoveStartMsg(const Player* sendPlayer, const Player* recvPlayer)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+	buildMsg_move_start(
+		static_cast<char>(MESSAGE_DEFINE::RES_MOVE_START),
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetAction(),
+		sendPlayer->GetX(),
+		sendPlayer->GetY(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::Post_DeleteCharacterMsg(const Player* sendPlayer, const Player* recvPlayer)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+
+	buildMsg_deleteCharacter(
+		static_cast<char>(MESSAGE_DEFINE::RES_DELETE_CHARACTER),
+		sendPlayer->GetPlayerId(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::Post_MoveStopMsg(const Player* sendPlayer, const Player* recvPlayer)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+
+	buildMsg_move_stop(
+		static_cast<char>(MESSAGE_DEFINE::RES_MOVE_STOP),
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetDirection(),
+		sendPlayer->GetX(),
+		sendPlayer->GetY(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::Post_LeftHandAtkMsg(const Player* sendPlayer, const Player* recvPlayer)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+
+	buildMsg_attack_lefthand(
+		static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_LEFT_HAND),
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetDirection(),
+		sendPlayer->GetX(),
+		sendPlayer->GetY(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::Post_RightHandAtkMsg(const Player* sendPlayer, const Player* recvPlayer)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+
+	buildMsg_attack_righthand(
+		static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_RIGHT_HAND),
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetDirection(),
+		sendPlayer->GetX(),
+		sendPlayer->GetY(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::Post_KickMsg(const Player* sendPlayer, const Player* recvPlayer)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+
+	buildMsg_attack_kick(
+		static_cast<char>(MESSAGE_DEFINE::RES_ATTACK_KICK),
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetDirection(),
+		sendPlayer->GetX(),
+		sendPlayer->GetY(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
+}
+
+void GameServer::Post_DamageMsg(const Player* sendPlayer, const Player* recvPlayer, const int attackerId)
+{
+	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+	sBuffer->clear();
+
+	buildMsg_damage(
+		static_cast<char>(MESSAGE_DEFINE::RES_DAMAGE),
+		attackerId,
+		sendPlayer->GetPlayerId(),
+		sendPlayer->GetHp(),
+		sBuffer
+	);
+	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
+	_SbufferPool->deAllocate(sBuffer);
 }
 
 

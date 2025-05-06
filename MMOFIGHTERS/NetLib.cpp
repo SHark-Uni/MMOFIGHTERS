@@ -400,6 +400,8 @@ void NetWorkLib::SendBroadCast(SESSION_KEY exceptSession, SerializeBuffer* messa
 	message->moveReadPos(messageLen);
 }
 
+
+
 void NetWorkLib::Disconnect(SESSION_KEY sessionKey)
 {
 	const auto& iter = _Sessions.find(sessionKey);
