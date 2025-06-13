@@ -49,6 +49,7 @@ int CircularQueue::Enqueue(const char* pMessage, int size)
 		{
 			memcpy(_pBuffer + _Rear, pMessage, rSize);
 			memcpy(_pBuffer, pMessage + rSize, fSize);
+			_Rear = (_Rear + (fSize + rSize)) % (_Capacity + 1);
 			return fSize + rSize;
 		}
 
