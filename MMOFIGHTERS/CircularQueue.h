@@ -14,36 +14,41 @@ namespace Common
 
 		inline int GetCurrentSize() const
 		{
-			if ((_Rear + 1) % (_Capacity + 1) == _Front)
+			int front = _Front;
+			int rear = _Rear;
+
+			if ((rear + 1) % (_Capacity + 1) == front)
 			{
 				return _Capacity;
 			}
 
-			if (_Front <= _Rear)
+			if (front <= rear)
 			{
-				return (_Rear - _Front);
+				return (rear - front);
 			}
 			else
 			{
-				return (_Capacity - _Front + 1 + _Rear);
+				return (_Capacity - front + 1 + rear);
 			}
 
 		}
 		inline int GetRemainingSize() const
 		{
+			int front = _Front;
+			int rear = _Rear;
 			//비어 있다면
-			if (_Front == _Rear)
+			if (front == rear)
 			{
 				return _Capacity;
 			}
 			// 꽉찬 경우도 커버함.
-			if (_Front < _Rear)
+			if (front < rear)
 			{
-				return (_Front)+(_Capacity - _Rear);
+				return (front)+(_Capacity - rear);
 			}
 			else
 			{
-				return (_Front - _Rear - 1);
+				return (front - rear - 1);
 			}
 		}
 
@@ -67,18 +72,21 @@ namespace Common
 
 		inline int GetDirect_EnqueueSize() const
 		{
+			int front = _Front;
+			int rear = _Rear;
 			//Front가 0인 경우, R이 Capacity칸을 비워야하기 때문에.. +1을 못해줌.
-			if (_Front == 0)
+			if (front == 0)
 			{
-				return _Capacity - _Rear;
+				return _Capacity - rear;
 			}
-			if (_Front <= _Rear)
+			if (front <= rear)
 			{
 				//Rear가 가리키는 값은 항상 비어있어야함.
-				return _Capacity - _Rear + 1;
+				return _Capacity - rear + 1;
 			}
-			return _Front - _Rear - 1;
+			return front - rear - 1;
 		}
+
 		inline void MoveRear(int size)
 		{
 			_Rear = (_Rear + size) % (_Capacity + 1);
@@ -87,12 +95,16 @@ namespace Common
 
 		inline int GetDirect_DequeueSize() const
 		{
-			if (_Front <= _Rear)
+			int front = _Front;
+			int rear = _Rear;
+
+			if (front <= rear)
 			{
-				return (_Rear - _Front);
+				return (rear - front);
 			}
-			return (_Capacity - _Front + 1);
+			return (_Capacity - front + 1);
 		}
+
 		inline void MoveFront(int size)
 		{
 			_Front = (_Front + size) % (_Capacity + 1);
@@ -100,7 +112,7 @@ namespace Common
 		}
 
 		void clear();
-	private:
+	public:
 		int _Front;
 		int _Rear;
 		int _Capacity;
