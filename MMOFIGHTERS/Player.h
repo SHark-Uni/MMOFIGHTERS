@@ -1,16 +1,18 @@
 #pragma once
 
-#include "Sector.h" 
+#include "Sector.h"
+#include "PlayerDefine.h"
+#include "NetDefine.h"
 
 namespace Core
 {
 	class Player
 	{
 	public:
-		void Init(const int playerId, const int sessionId);
-		int generatePlayerId()
+		void Init(const PLAYER_KEY playerId, const NetLib::SESSION_KEY sessionId);
+		PLAYER_KEY generatePlayerId()
 		{
-			static int playerId = 0;
+			static UINT64 playerId = 0;
 			return playerId++;
 		}
 
@@ -55,11 +57,11 @@ namespace Core
 		{
 			return _Action;
 		}
-		inline int GetPlayerId() const
+		inline PLAYER_KEY GetPlayerId() const
 		{
 			return _PlayerId;
 		}
-		inline int GetSessionId() const
+		inline NetLib::SESSION_KEY GetSessionId() const
 		{
 			return _SessionId;
 		}
@@ -122,8 +124,8 @@ namespace Core
 			_IsMoveSector = false;
 		}
 	private:
-		int _PlayerId;
-		int _SessionId;
+		PLAYER_KEY _PlayerId;
+		NetLib::SESSION_KEY _SessionId;
 
 		SECTOR_POS _CurSectorPos;
 		SECTOR_POS _PrevSectorPos;

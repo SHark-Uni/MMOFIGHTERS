@@ -1,13 +1,13 @@
 #include "Player.h"
-#include "PlayerDefine.h"
 #include "ContentDefine.h"
 
 #include <stdlib.h>
 
 using namespace Core;
 using namespace Common;
+using namespace NetLib;
 
-void Player::Init(const int playerId, const int sessionId)
+void Player::Init(const PLAYER_KEY playerId, const SESSION_KEY sessionId)
 {
 	_PlayerId = playerId;
 	_SessionId = sessionId;
@@ -27,14 +27,20 @@ void Player::Init(const int playerId, const int sessionId)
 
 int Player::generateSpawnY() const
 {
-	//return (rand() % (RANGE_MOVE_BOTTOM - RANGE_MOVE_TOP) + RANGE_MOVE_TOP);
+#ifdef GAME_DEUBG
 	return 400;
+#else
+	return (rand() % (RANGE_MOVE_BOTTOM - RANGE_MOVE_TOP) + RANGE_MOVE_TOP);
+#endif
 }
 
 int Player::generateSpawnX() const
 {
-	//return (rand() % (RANGE_MOVE_RIGHT - RANGE_MOVE_LEFT) + RANGE_MOVE_LEFT);
+#ifdef GAME_DEUBG
 	return 150;
+#else
+	return (rand() % (RANGE_MOVE_RIGHT - RANGE_MOVE_LEFT) + RANGE_MOVE_LEFT);
+#endif
 }
 void Player::Move(const short x, const short y)
 {

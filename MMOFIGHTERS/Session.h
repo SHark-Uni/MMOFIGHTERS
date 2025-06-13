@@ -6,6 +6,7 @@
 #include <WS2tcpip.h>
 
 #include "CircularQueue.h"
+#include "NetDefine.h"
 
 using namespace Common;
 namespace NetLib
@@ -15,7 +16,7 @@ namespace NetLib
 	{
 	public:
 		Session();
-		void InitSession(const SOCKET connectSocket, const SOCKADDR_IN& connectInfo, const int key);
+		void InitSession(const SOCKET connectSocket, const SOCKADDR_IN& connectInfo, const SESSION_KEY key);
 		inline SOCKET GetSocket() const
 		{
 			return _Socket;
@@ -33,13 +34,13 @@ namespace NetLib
 		{
 			return _Alive;
 		}
-		static int GenerateSessionKey()
+		static SESSION_KEY GenerateSessionKey()
 		{
-			static int key = 0;
+			static SESSION_KEY key = 0;
 			return key++;
 		}
 		void GetIP(WCHAR* out, size_t buffersize);
-		inline int GetSessionKey() const
+		inline SESSION_KEY GetSessionKey() const
 		{
 			return _Key;
 		}
@@ -51,7 +52,7 @@ namespace NetLib
 		CircularQueue* _pSendQueue;
 		CircularQueue* _pRecvQueue;
 		bool _Alive;
-		int _Key;
+		SESSION_KEY _Key;
 		SOCKADDR_IN _AddrInfo;
 	};
 }

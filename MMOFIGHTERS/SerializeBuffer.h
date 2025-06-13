@@ -31,7 +31,7 @@ namespace Common
 
 		inline int getData(char* dst, size_t size)
 		{
-			int cpySize = size;
+			size_t cpySize = size;
 			//요청된 사이즈가 갖고있는 사이즈보다 크다.
 			//dst는 size보다 크다고 가정한다.
 			if (size > _WritePos - _ReadPos)
@@ -44,7 +44,7 @@ namespace Common
 		}
 		inline int setData(char* src, size_t size)
 		{
-			int cpySize = size;
+			size_t cpySize = size;
 			if ((_Capacity - _WritePos) < size)
 			{
 				cpySize = _Capacity - _WritePos;

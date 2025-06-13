@@ -43,7 +43,7 @@ void GameServer::registFrameManager(FrameManager* frameManager)
 
 void GameServer::OnAcceptProc(const SESSION_KEY key)
 {
-	int playerKey;
+	PLAYER_KEY playerKey;
 	Player* newPlayer;
 	
 	newPlayer = _PlayerPool->allocate();
@@ -164,7 +164,7 @@ void GameServer::cleanUpPlayer()
 	for (; iter != iter_e; )
 	{
 		Player* cur = iter->second;
-		int key = iter->first;
+		PLAYER_KEY key = iter->first;
 
 		if (cur->IsAlive() == false)
 		{
@@ -288,8 +288,9 @@ void GameServer::update()
 void Core::GameServer::fixedUpdate()
 {
 	update();
-
+#ifdef GAME_DEBUG
 	//printAroundSector();
+#endif
 	DWORD deltaTime = _FrameManager->CalculateTimeInterval();
 	if (deltaTime < TIME_PER_FRAME)
 	{
@@ -340,7 +341,7 @@ void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY ke
 	}
 
 	//내 캐릭터 정보 찾기
-	int playerKey = _keys.find(key)->second;
+	PLAYER_KEY playerKey = _keys.find(key)->second;
 	Player* player = _Players.find(playerKey)->second;
 	player->SetTimeOut(::timeGetTime());
 	player->SetAction(action);
@@ -395,7 +396,7 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 	}
 
 	//내 캐릭터 정보 찾기
-	int playerKey = _keys.find(key)->second;
+	PLAYER_KEY playerKey = _keys.find(key)->second;
 	Player* player = _Players.find(playerKey)->second;
 	player->SetTimeOut(::timeGetTime());
 
@@ -480,7 +481,7 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 		return;
 	}
 	 
-	int attackerKey = _keys.find(key)->second;
+	PLAYER_KEY attackerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(attackerKey)->second;
 	attacker->SetTimeOut(::timeGetTime());
 	Player* target = nullptr;
@@ -524,7 +525,7 @@ void GameServer::ReqAttackRightHandProc(SerializeBuffer* message, const SESSION_
 	}
 
 	//내 캐릭터 정보 찾기
-	int attackerKey = _keys.find(key)->second;
+	PLAYER_KEY attackerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(attackerKey)->second;
 	Player* target = nullptr;
 	attacker->SetTimeOut(::timeGetTime());
@@ -569,7 +570,7 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 	}
 
 	//내 캐릭터 정보
-	int attackerKey = _keys.find(key)->second;
+	PLAYER_KEY attackerKey = _keys.find(key)->second;
 	Player* attacker = _Players.find(attackerKey)->second;
 	Player* target = nullptr;
 	attacker->SetTimeOut(::timeGetTime());

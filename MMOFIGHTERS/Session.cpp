@@ -1,15 +1,15 @@
 #include "Session.h"
 #include "ObjectPool.h"
-#include "NetDefine.h"
+
 using namespace NetLib;
 
 Session::Session()
 {
-	_pRecvQueue = new CircularQueue(2048);
+	_pRecvQueue = new CircularQueue(8192);
 	_pSendQueue = new CircularQueue(RINGBUFFER_QUEUE_SIZE);
 }
 
-void Session::InitSession(const SOCKET connectSocket, const SOCKADDR_IN& connectInfo, const int key)
+void Session::InitSession(const SOCKET connectSocket, const SOCKADDR_IN& connectInfo, const SESSION_KEY key)
 {
 	_Socket = connectSocket;
 	_AddrInfo = connectInfo;

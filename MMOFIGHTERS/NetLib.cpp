@@ -134,7 +134,7 @@ void NetWorkLib::Process()
 		if (Flag == SOCKET_ERROR)
 		{
 			Logger::Logging(static_cast<int>(eERROR_MESSAGE::SELECT_FAIL), __LINE__, L"SELECT ERROR");
-			DebugBreak();
+			__debugbreak();
 		}
 		if (FD_ISSET(_ListenSocket, &readSet))
 		{
@@ -276,7 +276,7 @@ void NetWorkLib::_AcceptProc()
 	//己傍利栏肺 Accpet
 	//技记 积己
 	Session* newSession = _SessionPool->allocate();
-	int key = newSession->GenerateSessionKey();
+	SESSION_KEY key = newSession->GenerateSessionKey();
 	newSession->InitSession(connectSocket, connectInfo, key);
 	_Sessions.insert({ key, newSession });
 
@@ -335,9 +335,10 @@ void NetWorkLib::SendUniCast(const SESSION_KEY sessionKey, SerializeBuffer* mess
 			printf("L7 BUFFER IS FULL DISCONNECT!\n");
 #endif
 			WCHAR log[80];
-			swprintf_s(log, L"L7 Buffer is FULL | SESSION_ID : %d | SEQ_LEN : %d\n", findSession->GetSessionKey(), curSendQ->GetCurrentSize());
+			swprintf_s(log, L"L7 Buffer is FULL | SESSION_ID : %lld | SEQ_LEN : %d\n", findSession->GetSessionKey(), curSendQ->GetCurrentSize());
 			Logger::Logging(-1, __LINE__, log);
 			OnDestroyProc(findSession->GetSessionKey());
+			__debugbreak();
 			return;
 		}
 	}
@@ -422,7 +423,7 @@ void NetWorkLib::CleanupSession()
 	for (; iter != iter_e; )
 	{
 		Session* cur = iter->second;
-		int sessionKey = iter->first;
+		SESSION_KEY sessionKey = iter->first;
 		if (cur->GetConnection() == false)
 		{
 			closesocket(cur->GetSocket());

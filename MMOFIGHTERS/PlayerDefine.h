@@ -1,6 +1,10 @@
 #pragma once
+
+#include <windows.h>
+
 namespace Core
 {
+	typedef UINT64 PLAYER_KEY;
 	enum class MOVE_DIRECTION
 	{
 		LEFT = 0,
@@ -12,13 +16,11 @@ namespace Core
 		BOTTOM = 6,
 		LEFT_BOTTOM = 7
 	};
-
 	enum class PLAYER_MOVE_SPEED
 	{
 		X_SPEED = 6,
 		Y_SPEED = 4,
 	};
-
 	enum class PLAYER_DEFAULT
 	{
 		DEFAULT_ACTION = -1,

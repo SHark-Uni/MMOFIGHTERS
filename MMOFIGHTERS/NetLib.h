@@ -29,7 +29,6 @@ namespace NetLib
 		void registSessionPool(ObjectPool<Session, SESSION_POOL_SIZE, false>* sessionpool);
 		void registSBufferPool(ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>* sbufferpool);
 	protected:
-		typedef int SESSION_KEY;
 		/*=======
 			TODO : RUDP
 		===========*/

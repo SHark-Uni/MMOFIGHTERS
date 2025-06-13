@@ -4,20 +4,21 @@
 #include "Player.h"
 #include "Sector.h"
 #include "FrameManager.h"
+#include "NetDefine.h"
 #include <list>
 #include <vector>
 #include <algorithm>
 
 namespace Core
 {
-	constexpr int PLAYER_POOL_SIZE = 8000;
-	constexpr int PLAYER_RESERVER_SIZE = 8000;
+	constexpr int PLAYER_POOL_SIZE = 12500;
+	constexpr int PLAYER_RESERVER_SIZE = 12500;
 
+	using namespace NetLib;
 	class Player;
 	class GameServer : public NetLib::NetWorkLib
 	{
 	public:
-		typedef int PLAYER_KEY;
 		GameServer();
 		virtual ~GameServer();
 
@@ -69,6 +70,7 @@ namespace Core
 		void fixedUpdate();
 
 		//DEBUG
+#ifdef GAME_DEUBG
 		void printAroundSector()
 		{
 			const auto& ret = _Players.find(0);
@@ -130,6 +132,7 @@ namespace Core
 
 			}
 		}
+#endif
 	private:
 		std::unordered_map<SESSION_KEY, PLAYER_KEY> _keys;
 		std::unordered_map<PLAYER_KEY, Player*> _Players;
