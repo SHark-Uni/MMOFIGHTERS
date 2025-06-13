@@ -131,7 +131,7 @@ void GameServer::OnDestroyProc(const SESSION_KEY key)
 	//유효하지 않은 세션키?
 	if (iter == _keys.end())
 	{
-		DebugBreak();
+		__debugbreak();
 		return;
 	}
 	PLAYER_KEY playerKey = iter->second;
@@ -139,7 +139,7 @@ void GameServer::OnDestroyProc(const SESSION_KEY key)
 	if (iter2 == _Players.end())
 	{
 		//유효하지 않은 플레이어키?
-		DebugBreak();
+		__debugbreak();
 		return;
 	}
 
@@ -208,6 +208,7 @@ void GameServer::update()
 		int prevY = cur->GetY();
 #endif
 		int action = cur->GetAction();
+		//Action이 있다면, Timer Update
 		if (action != PLAYER_NO_ACTION)
 		{
 			cur->SetTimeOut(::timeGetTime());
@@ -309,7 +310,9 @@ void Core::GameServer::fixedUpdate()
 		}
 	}
 	_FrameManager->DisplayFrameInfo();
+#ifdef GAME_DEBUG
 	printAroundSector();
+#endif
 }
 
 void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY key)
@@ -322,10 +325,8 @@ void GameServer::ReqMoveStartProc(SerializeBuffer* message, const SESSION_KEY ke
 	if (message->checkFailBit() == true)
 	{
 		//읽기 실패. 직렬화 버퍼 순서 잘못한거임. 혹은, 메시지 크기가 협의되지 않은상태로 들어옴.
-		DebugBreak();
+		__debugbreak();
 	}
-
-	//MOVE START 시에도, 싱크를 보내줘야할까? 둘중에 한곳에서만 해주면 되지 않을까? 
 
 	//범위 넘는 메시지 무시
 	if (recvX >= RANGE_MOVE_RIGHT || recvY >= RANGE_MOVE_BOTTOM)
@@ -471,7 +472,7 @@ void GameServer::ReqAttackLeftHandProc(SerializeBuffer* message, const SESSION_K
 	if (message->checkFailBit() == true)
 	{
 		//읽기 실패. 직렬화 버퍼 순서 잘못한거임. 혹은, 메시지 크기가 협의되지 않은상태로 들어옴.
-		DebugBreak();
+		__debugbreak();
 	}
 	//이상향 방향이 들어왔다면 무시. (그럴일은 없겠지만)
 	if (CheckDirection(attackDir) == false)
@@ -514,7 +515,7 @@ void GameServer::ReqAttackRightHandProc(SerializeBuffer* message, const SESSION_
 	*message >> attackDir >> recvX >> recvY;
 	if (message->checkFailBit() == true)
 	{
-		DebugBreak();
+		__debugbreak();
 	}
 	//이상향 방향이 들어왔다면 무시. (그럴일은 없겠지만)
 	if (CheckDirection(attackDir) == false)
@@ -559,7 +560,7 @@ void GameServer::ReqAttackKickProc(SerializeBuffer* message, const SESSION_KEY k
 	*message >> attackDir >> recvX >> recvY;
 	if (message->checkFailBit() == true)
 	{
-		DebugBreak();
+		__debugbreak();
 	}
 
 	if (CheckDirection(attackDir) == false)
@@ -960,11 +961,12 @@ void GameServer::Post_CreateOtherCharacterMsg(const Player* sendPlayer, const Pl
 		sBuffer
 	);
 
-	//Debug
+#ifdef GAME_DEBUG
 	if (recvPlayer->GetPlayerId() == 0)
 	{
 		printf("CREATE MESSAGE TO 0 FROM %d\n", sendPlayer->GetPlayerId());
 	}
+#endif
 
 	SendUniCast(recvPlayer->GetSessionId(), sBuffer, sBuffer->getUsedSize());
 	_SbufferPool->deAllocate(sBuffer);

@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CircularQueue.cpp" />
+    <ClCompile Include="CrashDump.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -141,6 +142,7 @@
     <ClInclude Include="CircularQueue.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ContentDefine.h" />
+    <ClInclude Include="CrashDump.h" />
     <ClInclude Include="ErrorMessage.h" />
     <ClInclude Include="FrameManager.h" />
     <ClInclude Include="GameServer.h" />

@@ -61,6 +61,9 @@
     <ClCompile Include="Logger.cpp">
       <Filter>LOG</Filter>
     </ClCompile>
+    <ClCompile Include="CrashDump.cpp">
+      <Filter>GameServer\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircularQueue.h">
@@ -113,6 +116,9 @@
     </ClInclude>
     <ClInclude Include="FrameManager.h">
       <Filter>GameServer\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="CrashDump.h">
+      <Filter>GameServer\Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -6,12 +6,13 @@
 #include "Session.h"
 #include "GameServer.h"
 #include "FrameManager.h"
+#include "CrashDump.h"
 
 using namespace Common;
 using namespace NetLib;
 using namespace Core;
 
-
+Crashdump crash;
 int main()
 {
 	::timeBeginPeriod(1);
