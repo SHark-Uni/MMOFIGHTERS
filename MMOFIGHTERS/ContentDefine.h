@@ -34,9 +34,9 @@ namespace Common
 	constexpr int ATTACK_KICK_X = 100;
 	constexpr int ATTACK_KICK_Y = 20;
 
-	constexpr int DAMAGE_LEFT_HAND = 0;
-	constexpr int DAMAGE_RIGHT_HAND = 0;
-	constexpr int DAMAGE_KICK = 0;
+	constexpr int DAMAGE_LEFT_HAND = 3;
+	constexpr int DAMAGE_RIGHT_HAND = 5;
+	constexpr int DAMAGE_KICK = 8;
 
 	constexpr int CHARACTER_DIRECTION_LEFT = 0;
 	constexpr int CHARACTER_DIRECTION_RIGHT = 4;
