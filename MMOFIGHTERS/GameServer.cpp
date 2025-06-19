@@ -2,7 +2,6 @@
 #include "MessageFormat.h"
 #include "MessageBuilder.h"
 
-#include "PlayerDefine.h"
 #include "Logger.h"
 #include "NetDefine.h"
 #include "ObjectPool.h"
@@ -11,7 +10,6 @@
 using namespace NetLib;
 using namespace Core;
 using namespace Common;
-
 
 GameServer::GameServer()
 {
@@ -84,7 +82,7 @@ void GameServer::OnAcceptProc(const SESSION_KEY key)
 		sBuffer
 	);
 	SendUniCast(key, sBuffer, sBuffer->getUsedSize());
-
+	_SbufferPool->deAllocate(sBuffer);
 	//2. 주위 섹터에게 플레이어(나) 생성하는 메시지 보내기
 	Post_AroundSector_CreateCharacterMsg(newPlayer);
 	//3. 섹터를 돌면서, 섹터에 존재하는 캐릭터(타인)들 생성해주는 메시지 보내기.
@@ -181,6 +179,8 @@ void GameServer::cleanUpPlayer()
 
 void GameServer::update()
 {
+	DWORD pivotTime;
+	DWORD myTime;
 	//프레임마다 움직이기.
 	for (auto& player : _Players)
 	{
@@ -193,7 +193,9 @@ void GameServer::update()
 			OnDestroyProc(cur->GetSessionId());
 			continue;
 		}
-		if (::timeGetTime() - cur->GetTimeOut() >= PLAYER_TIMEOUT)
+		pivotTime = ::timeGetTime();
+		myTime = cur->GetTimeOut();
+		if ((pivotTime - myTime) >= PLAYER_TIMEOUT)
 		{
 #ifdef GAME_DEBUG
 			printf("PLAYER TIMEOUT DISCONNECT!\n");
@@ -458,7 +460,6 @@ void GameServer::ReqMoveStopProc(SerializeBuffer* message, const SESSION_KEY key
 #endif
 	//무브스탑 메시지 생성 후 보내기
 	Post_AroundSector_MoveStopMsg(player);
-
 	_SbufferPool->deAllocate(sBuffer);
 	return;
 }
@@ -607,10 +608,12 @@ void GameServer::ReqEcho(Common::SerializeBuffer* message, const SESSION_KEY key
 	printf("=================================================\n");
 #endif 
 	SerializeBuffer* sBuffer = _SbufferPool->allocate();
+
 	sBuffer->clear();
 
 	buildMsg_Echo(static_cast<char>(MESSAGE_DEFINE::RES_ECHO), time, sBuffer);
 	SendUniCast(key, sBuffer, sBuffer->getUsedSize());
+
 	_SbufferPool->deAllocate(sBuffer);
 }
 

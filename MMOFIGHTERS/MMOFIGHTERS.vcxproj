@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="CircularQueue.cpp" />
     <ClCompile Include="CrashDump.cpp" />
+    <ClCompile Include="FrameManager.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />

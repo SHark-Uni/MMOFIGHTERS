@@ -12,7 +12,7 @@ namespace Core
 		void Init(const PLAYER_KEY playerId, const NetLib::SESSION_KEY sessionId);
 		PLAYER_KEY generatePlayerId()
 		{
-			static UINT64 playerId = 0;
+			static PLAYER_KEY playerId = 0;
 			return playerId++;
 		}
 

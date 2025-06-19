@@ -64,6 +64,9 @@
     <ClCompile Include="CrashDump.cpp">
       <Filter>GameServer\Common</Filter>
     </ClCompile>
+    <ClCompile Include="FrameManager.cpp">
+      <Filter>GameServer\Timer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircularQueue.h">

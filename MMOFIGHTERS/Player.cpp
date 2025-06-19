@@ -14,6 +14,7 @@ void Player::Init(const PLAYER_KEY playerId, const SESSION_KEY sessionId)
 
 	_Action = static_cast<int>(PLAYER_DEFAULT::DEFAULT_ACTION);
 	_Direction = static_cast<int>(PLAYER_DEFAULT::DEFAULT_DIR);
+	_IsMoveSector = false;
 	_IsAlive = true;
 
 	_X = generateSpawnX();

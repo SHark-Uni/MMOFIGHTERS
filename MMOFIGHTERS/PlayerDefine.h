@@ -1,10 +1,8 @@
 #pragma once
 
-#include <windows.h>
-
 namespace Core
 {
-	typedef UINT64 PLAYER_KEY;
+	typedef unsigned long long PLAYER_KEY;
 	enum class MOVE_DIRECTION
 	{
 		LEFT = 0,

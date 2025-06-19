@@ -19,6 +19,7 @@ namespace NetLib
 	class Session;
 	class NetWorkLib
 	{
+
 	public:
 		NetWorkLib() = default;
 		virtual ~NetWorkLib();
@@ -45,8 +46,9 @@ namespace NetLib
 
 	protected:
 		ObjectPool<SerializeBuffer, SBUFFER_POOL_SIZE, false>* _SbufferPool;
-	private:
 		std::unordered_map<SESSION_KEY, Session*> _Sessions;
+	private:
+		
 		SOCKET _ListenSocket;
 
 		ObjectPool<Session, SESSION_POOL_SIZE, false>* _SessionPool;

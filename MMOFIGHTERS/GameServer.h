@@ -5,6 +5,7 @@
 #include "Sector.h"
 #include "FrameManager.h"
 #include "NetDefine.h"
+#include "PlayerDefine.h"
 #include <list>
 #include <vector>
 #include <algorithm>
@@ -18,6 +19,7 @@ namespace Core
 	class Player;
 	class GameServer : public NetLib::NetWorkLib
 	{
+		friend class FrameManager;
 	public:
 		GameServer();
 		virtual ~GameServer();
@@ -134,7 +136,7 @@ namespace Core
 		}
 #endif
 	private:
-		std::unordered_map<SESSION_KEY, PLAYER_KEY> _keys;
+		std::unordered_map<NetLib::SESSION_KEY, PLAYER_KEY> _keys;
 		std::unordered_map<PLAYER_KEY, Player*> _Players;
 
 		Common::ObjectPool<Player, PLAYER_POOL_SIZE, false>* _PlayerPool;

@@ -1,15 +1,18 @@
 #pragma once
 
 #pragma comment(lib, "winmm")
+#define _WINSOCKAPI_
 #include <windows.h>
 #include <vector>
 #include <time.h>
 #include "Sector.h"
+
 namespace Core
 {
 	constexpr int FRAME = 25;
 	constexpr int TIME_PER_FRAME = 1000 / FRAME;
 	constexpr int FRAME_LOG_TIME = 10000;
+	class GameServer;
 	class FrameManager
 	{
 	public:
@@ -17,6 +20,11 @@ namespace Core
 		{
 			tmp_sector = sector;
 		}
+		inline void InitGameserver(GameServer* gameserver)
+		{
+			debugGameserver = gameserver;
+		}
+
 		inline void InitTimer()
 		{
 			_PrevTick = timeGetTime();
@@ -53,40 +61,8 @@ namespace Core
 			return Interval;
 		}
 
-		inline void DisplayFrameInfo()
-		{
-			DWORD curTime = ::timeGetTime();
-			if (curTime - _FrameOutPutTime >= FRAME_LOG_TIME)
-			{
-				_FrameOutPutTime = curTime;
-				struct tm t;
-				time_t timer;
-				_time64(&timer);
+		void DisplayFrameInfo();
 
-				localtime_s(&t, &timer);
-				
-				if (_MinDeltaTime < TIME_PER_FRAME)
-				{
-					_MinDeltaTime = TIME_PER_FRAME;
-				}
-
-				if (_MaxDeltaTime < TIME_PER_FRAME)
-				{
-					_MaxDeltaTime = TIME_PER_FRAME;
-				}
-				int sum = 0;
-				for (int i = 0; i < 50; i++)
-				{
-					for (int j = 0; j < 50; j++)
-					{
-						sum += tmp_sector->_Sector[i][j].size();
-					}
-				}
-				printf("[%d : %d : %d] MIN_FRAME : %d | MAX_FRAME : %d | Sector TOTAL : %d \n", t.tm_hour, t.tm_min, t.tm_sec, 1000 / _MaxDeltaTime, 1000 / _MinDeltaTime, sum);
-				_MinDeltaTime = UINT_MAX;
-				_MaxDeltaTime = 0;
-			}
-		}
 	private:
 		DWORD _PrevTick;
 		DWORD _FrameOutPutTime;
@@ -94,6 +70,7 @@ namespace Core
 		DWORD _MaxDeltaTime;
 		DWORD _MinDeltaTime;
 
+		GameServer* debugGameserver;
 		Sector* tmp_sector;
 	};
 }

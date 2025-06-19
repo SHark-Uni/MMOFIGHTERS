@@ -39,6 +39,8 @@ int main()
 	int delayedTime = 0;
 	frameManager->InitTimer();
 	frameManager->InitSector(sector);
+	frameManager->InitGameserver(gameServer);
+
 	while (true)
 	{
 		//네트워크

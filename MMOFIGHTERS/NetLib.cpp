@@ -335,7 +335,7 @@ void NetWorkLib::SendUniCast(const SESSION_KEY sessionKey, SerializeBuffer* mess
 			printf("L7 BUFFER IS FULL DISCONNECT!\n");
 #endif
 			WCHAR log[80];
-			swprintf_s(log, L"L7 Buffer is FULL | SESSION_ID : %lld | SEQ_LEN : %d\n", findSession->GetSessionKey(), curSendQ->GetCurrentSize());
+			swprintf_s(log, L"L7 Buffer is FULL | SESSION_ID : %lld | SEQ_LEN : %d | sessionSize : %lld |\n", findSession->GetSessionKey(), curSendQ->GetCurrentSize(), _Sessions.size());
 			Logger::Logging(-1, __LINE__, log);
 			OnDestroyProc(findSession->GetSessionKey());
 			__debugbreak();
