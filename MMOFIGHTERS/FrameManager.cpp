@@ -1,5 +1,6 @@
 #include "Gameserver.h"
 #include "FrameManager.h"
+#include "Session.h"
 
 using namespace Core;
 

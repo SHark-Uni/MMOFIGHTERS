@@ -52,7 +52,6 @@ namespace Common
 			{
 				//allocateBucket();
 				allocateBucket_with_default_constructor();
-				__debugbreak();
 			}
 
 			ret = reinterpret_cast<T*>(&_CurSlot->_Data);
